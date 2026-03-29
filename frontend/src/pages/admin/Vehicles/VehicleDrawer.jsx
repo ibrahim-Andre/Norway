@@ -14,16 +14,16 @@ export default function VehicleDrawer({ vehicle, onClose, onSaved }) {
     status: vehicle?.status || 'active'
   });
   
-  const payload = {
+
+
+  async function submit() {
+    if (!form.plate) return alert('Plaka zorunlu');
+	const payload = {
   ...form,
   fuel_cost: form.fuel_cost
     ? Number(form.fuel_cost)
     : 0,
 };
-
-
-  async function submit() {
-    if (!form.plate) return alert('Plaka zorunlu');
 
     if (vehicle) {
       await updateVehicle(vehicle.id, form);

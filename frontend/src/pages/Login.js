@@ -61,7 +61,7 @@ function Login() {
       }
 
       // 2️⃣ Email + password login
-      const { data, error: loginError } =
+      const { error: loginError } =
         await supabase.auth.signInWithPassword({
           email: profile.email, // 🔥 BURASI ÖNEMLİ
           password,
