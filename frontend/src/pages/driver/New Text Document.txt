@@ -1,0 +1,34 @@
+Driver policy
+create policy "Drivers can view own profile"
+on profiles
+for select
+using (auth.uid() = id);
+
+create policy "Admins full access"
+on profiles
+for all
+using (
+  exists (
+    select 1 from profiles
+    where id = auth.uid()
+    and role = 'admin'
+  )
+);
+
+create policy "Driver can view own trips"
+on trips
+for select
+using (driver_id = auth.uid());
+
+
+create policy "Admin full access trips"
+on trips
+for all
+using (
+  exists (
+    select 1 from profiles
+    where id = auth.uid()
+    and role = 'admin'
+  )
+);
+
