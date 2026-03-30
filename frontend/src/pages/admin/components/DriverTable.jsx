@@ -1,22 +1,28 @@
 import { useEffect, useState } from "react"
 import { DataGrid } from "@mui/x-data-grid"
-import { Chip, IconButton, Box } from "@mui/material"
+import { Chip, IconButton, Box, Dialog, DialogTitle, DialogContent } from "@mui/material"
 import EditIcon from "@mui/icons-material/Edit"
 import BlockIcon from "@mui/icons-material/Block"
-import DeleteIcon from '@mui/icons-material/Delete';
+import DeleteIcon from "@mui/icons-material/Delete"
+import AttachMoneyIcon from "@mui/icons-material/AttachMoney"
 import { supabase } from "../../../lib/supabase"
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom"
+import DriverDailyIncomeForm from "../../components/DriverDailyIncomeForm"
 
 
 export default function DriverTable({ onEdit, refreshKey }) {
   const [rows, setRows] = useState([])
   const [loading, setLoading] = useState(true)
-  const navigate = useNavigate();
+
+  // GELIR MODAL STATE
+  const [incomeOpen, setIncomeOpen] = useState(false)
+  const [selectedDriver, setSelectedDriver] = useState(null)
+
+  const navigate = useNavigate()
 
   useEffect(() => {
     fetchDrivers()
   }, [refreshKey])
-
 
   const fetchDrivers = async () => {
     const { data, error } = await supabase
@@ -39,7 +45,6 @@ export default function DriverTable({ onEdit, refreshKey }) {
     setLoading(false)
   }
 
-
   const updateStatus = async (id, status) => {
     await supabase
       .from("drivers")
@@ -50,7 +55,6 @@ export default function DriverTable({ onEdit, refreshKey }) {
   }
 
   const deleteDriver = async (authUserId) => {
-
     const ok = window.confirm("Driver tamamen silinsin mi?")
     if (!ok) return
 
@@ -79,6 +83,11 @@ export default function DriverTable({ onEdit, refreshKey }) {
     fetchDrivers()
   }
 
+  // GELIR BUTONU
+  const handleIncomeClick = (driver) => {
+    setSelectedDriver(driver)
+    setIncomeOpen(true)
+  }
 
   const columns = [
     {
@@ -121,10 +130,10 @@ export default function DriverTable({ onEdit, refreshKey }) {
       flex: 1.5,
       renderCell: (params) => {
         const activeAssignments =
-          params.row.driver_vehicle_assignments?.filter(a => a.is_active);
+          params.row.driver_vehicle_assignments?.filter(a => a.is_active)
 
         if (!activeAssignments || activeAssignments.length === 0)
-          return "-";
+          return "-"
 
         return (
           <div>
@@ -139,11 +148,9 @@ export default function DriverTable({ onEdit, refreshKey }) {
               />
             ))}
           </div>
-        );
+        )
       }
     },
-
-
     {
       field: "license_expiry",
       headerName: "License Expiry",
@@ -161,16 +168,23 @@ export default function DriverTable({ onEdit, refreshKey }) {
       field: "actions",
       headerName: "Actions",
       sortable: false,
-      flex: 1,
+      flex: 1.3,
 
       renderCell: (params) => (
         <>
-          <IconButton size="small" color="primary" onClick={() => onEdit(params.row)}>
-            <EditIcon fontSize="small" />
-          </IconButton>
+          {/* EDIT */}
           <IconButton
             size="small"
-            color="error"
+            color="primary"
+            onClick={() => onEdit(params.row)}
+          >
+            <EditIcon fontSize="small" />
+          </IconButton>
+
+          {/* AKTIF / PASIF */}
+          <IconButton
+            size="small"
+            color="warning"
             onClick={() =>
               updateStatus(
                 params.row.id,
@@ -180,6 +194,8 @@ export default function DriverTable({ onEdit, refreshKey }) {
           >
             <BlockIcon fontSize="small" />
           </IconButton>
+
+          {/* DELETE */}
           <IconButton
             size="small"
             color="error"
@@ -187,22 +203,51 @@ export default function DriverTable({ onEdit, refreshKey }) {
           >
             <DeleteIcon fontSize="small" />
           </IconButton>
+
+          {/* KAZANC BUTONU */}
+          <IconButton
+            size="small"
+            color="success"
+            onClick={() => handleIncomeClick(params.row)}
+          >
+            <AttachMoneyIcon fontSize="small" />
+          </IconButton>
         </>
       )
     }
   ]
 
   return (
-    <Box sx={{ height: 600, width: "100%" }}>
-      <DataGrid
-        rows={rows}
-        columns={columns}
-        getRowId={(row) => row.id}
-        loading={loading}
-        pageSize={10}
-        rowsPerPageOptions={[10, 25, 50]}
-        disableSelectionOnClick
-      />
-    </Box>
+    <>
+      <Box sx={{ height: 600, width: "100%" }}>
+        <DataGrid
+          rows={rows}
+          columns={columns}
+          getRowId={(row) => row.id}
+          loading={loading}
+          pageSize={10}
+          rowsPerPageOptions={[10, 25, 50]}
+          disableSelectionOnClick
+        />
+      </Box>
+
+      {/* POPUP */}
+      <Dialog
+        open={incomeOpen}
+        onClose={() => setIncomeOpen(false)}
+        fullWidth
+        maxWidth="sm"
+      >
+        <DialogTitle>
+          {selectedDriver?.full_name} - Günlük Kazanç Girişi
+        </DialogTitle>
+
+        <DialogContent>
+          {selectedDriver && (
+            <DriverDailyIncomeForm driverId={selectedDriver.id} />
+          )}
+        </DialogContent>
+      </Dialog>
+    </>
   )
 }
