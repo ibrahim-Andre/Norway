@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../../../lib/supabase"
 import "./EarningsPage.css";
+import { useEffect, useState, useCallback } from "react";
 
 export default function DriversEarningsPage() {
   const [drivers, setDrivers] = useState([]);
@@ -8,6 +9,7 @@ export default function DriversEarningsPage() {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [loading, setLoading] = useState(false);
+  
 
   useEffect(() => {
 
@@ -23,9 +25,7 @@ export default function DriversEarningsPage() {
         schema: "public",
         table: "driver_daily_income",
       },
-      (payload) => {
-
-        console.log("Yeni kazanç geldi");
+      () => {
 
         fetchData();
 
@@ -38,51 +38,37 @@ export default function DriversEarningsPage() {
     supabase.removeChannel(channel);
   };
 
-}, []);
+}, [fetchData]);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
+
   setLoading(true);
 
   try {
 
-    const { data: driversData, error: driversError } =
+    const { data: driversData } =
       await supabase
         .from("drivers")
         .select("*")
-        .order("full_name", { ascending: true });
+        .order("full_name");
 
-    if (driversError) throw driversError;
+    const { data: earningsData } =
+      await supabase
+        .from("driver_daily_income")
+        .select("*");
 
-    let query = supabase
-      .from("driver_daily_income")
-      .select("*");
-
-    if (startDate) {
-      query = query.gte("date", startDate);
-    }
-
-    if (endDate) {
-      query = query.lte("date", endDate);
-    }
-
-    const { data: earningsData, error: earningsError } =
-      await query;
-
-    if (earningsError) throw earningsError;
     setDrivers(driversData || []);
     setEarnings(earningsData || []);
 
   } catch (error) {
 
-    console.error(
-      "Veri alınamadı:",
-      error.message
-    );
+    console.error(error);
 
   }
 
   setLoading(false);
-};
+
+}, []);
 
   const calculateTotals = (driverId) => {
   const now = new Date();
