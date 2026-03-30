@@ -6,10 +6,45 @@ import { useEffect, useState, useCallback } from "react";
 export default function DriversEarningsPage() {
   const [drivers, setDrivers] = useState([]);
   const [earnings, setEarnings] = useState([]);
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
   const [loading, setLoading] = useState(false);
   
+  
+  const fetchData = useCallback(async () => {
+
+    setLoading(true);
+
+    try {
+
+      const { data: driversData, error: driversError } =
+        await supabase
+          .from("drivers")
+          .select("*")
+          .order("full_name");
+
+      if (driversError) throw driversError;
+
+      const { data: earningsData, error: earningsError } =
+        await supabase
+          .from("driver_daily_income")
+          .select("*");
+
+      if (earningsError) throw earningsError;
+
+      setDrivers(driversData || []);
+      setEarnings(earningsData || []);
+
+    } catch (error) {
+
+      console.error(
+        "Veri alınamadı:",
+        error.message
+      );
+
+    }
+
+    setLoading(false);
+
+  }, []);
 
   useEffect(() => {
 
@@ -40,35 +75,6 @@ export default function DriversEarningsPage() {
 
 }, [fetchData]);
 
-  const fetchData = useCallback(async () => {
-
-  setLoading(true);
-
-  try {
-
-    const { data: driversData } =
-      await supabase
-        .from("drivers")
-        .select("*")
-        .order("full_name");
-
-    const { data: earningsData } =
-      await supabase
-        .from("driver_daily_income")
-        .select("*");
-
-    setDrivers(driversData || []);
-    setEarnings(earningsData || []);
-
-  } catch (error) {
-
-    console.error(error);
-
-  }
-
-  setLoading(false);
-
-}, []);
 
   const calculateTotals = (driverId) => {
   const now = new Date();
