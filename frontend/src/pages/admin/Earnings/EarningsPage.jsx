@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+
 import { supabase } from "../../../lib/supabase"
 import "./EarningsPage.css";
 import { useEffect, useState, useCallback } from "react";
