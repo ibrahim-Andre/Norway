@@ -17,22 +17,24 @@ export default function VehicleDrawer({ vehicle, onClose, onSaved }) {
 
 
   async function submit() {
-    if (!form.plate) return alert('Plaka zorunlu');
-	const payload = {
-  ...form,
-  fuel_cost: form.fuel_cost
-    ? Number(form.fuel_cost)
-    : 0,
-};
+  if (!form.plate) return alert('Plaka zorunlu');
 
-    if (vehicle) {
-      await updateVehicle(vehicle.id, form);
-    } else {
-      await createVehicle(form);
-    }
-    onSaved();
-    onClose();
+  const payload = {
+    ...form,
+    fuel_cost: form.fuel_cost
+      ? Number(form.fuel_cost)
+      : 0,
+  };
+
+  if (vehicle) {
+    await updateVehicle(vehicle.id, payload);
+  } else {
+    await createVehicle(payload);
   }
+
+  onSaved();
+  onClose();
+}
 
   return (
     <>
