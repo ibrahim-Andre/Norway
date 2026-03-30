@@ -9,6 +9,7 @@ import { GlobalStyle } from "./styles/GlobalStyle";
 import AdminLayout from "./layouts/AdminLayout";
 import DriverLayout from "./layouts/DriverLayout";
 import VehiclesPage from "./pages/admin/VehiclesPage";
+import EarningsPage from "./pages/admin/Earnings/EarningsPage";
 
 function App() {
   return (
@@ -32,6 +33,8 @@ function App() {
           <Route path="dashboard" element={<AdminDashboard />} />
           <Route path="drivers" element={<DriversPage />} />   {/* 👈 ADMIN DRIVER PAGE */}
           <Route path="vehicles" element={<VehiclesPage />} />
+		  <Route path="earnings" element={<EarningsPage />}
+/>
         </Route>
 
         {/* DRIVER – AYRI PANEL */}
