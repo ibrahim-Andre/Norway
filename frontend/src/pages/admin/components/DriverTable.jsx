@@ -7,8 +7,7 @@ import DeleteIcon from "@mui/icons-material/Delete"
 import AttachMoneyIcon from "@mui/icons-material/AttachMoney"
 import { supabase } from "../../../lib/supabase"
 import { useNavigate } from "react-router-dom"
-import DriverDailyIncomeForm from "../admin/components/DriverDailyIncomeForm"
-
+import DriverDailyIncomeForm from "./DriverDailyIncomeForm"
 
 export default function DriverTable({ onEdit, refreshKey }) {
   const [rows, setRows] = useState([])
