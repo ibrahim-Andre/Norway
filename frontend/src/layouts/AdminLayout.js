@@ -1,4 +1,7 @@
 import {
+  AppBar,
+  Toolbar,
+  Typography,
   Box,
   Drawer,
   List,
@@ -9,6 +12,9 @@ import {
 } from "@mui/material";
 
 import DashboardIcon from "@mui/icons-material/Dashboard";
+import DirectionsCarIcon from "@mui/icons-material/DirectionsCar";
+import PaymentsIcon from "@mui/icons-material/Payments";
+import PeopleIcon from "@mui/icons-material/People";
 import LogoutIcon from "@mui/icons-material/Logout";
 
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
@@ -20,6 +26,8 @@ const drawerWidth = 260;
 export default function AdminLayout() {
   const navigate = useNavigate();
   const location = useLocation();
+
+  const [admin, setAdmin] = useState(null);
 
   useEffect(() => {
     const loadAdmin = async () => {
@@ -41,6 +49,10 @@ export default function AdminLayout() {
     loadAdmin();
   }, []);
 
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate("/");
+  };
 
   const menuItems = [
     {
