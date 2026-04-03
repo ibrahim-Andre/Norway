@@ -33,8 +33,123 @@ export default function DriverEarningsPage() {
   const safeNumber = (v) => Number(v) || 0;
 
   useEffect(() => {
-    fetchData();
-  }, [month, year]);
+  const fetchData = async () => {
+    setLoading(true);
+
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) return;
+
+      const { data: driver } = await supabase
+        .from("drivers")
+        .select("id")
+        .eq("auth_user_id", user.id)
+        .single();
+
+      if (!driver) return;
+
+      const startDate = `${year}-${month
+        .toString()
+        .padStart(2, "0")}-01`;
+
+      const endDate = `${year}-${month
+        .toString()
+        .padStart(2, "0")}-${getDaysInMonth(
+        month,
+        year
+      )}`;
+
+      const { data } = await supabase
+        .from("driver_daily_income")
+        .select("*")
+        .eq("driver_id", driver.id)
+        .gte("date", startDate)
+        .lte("date", endDate);
+
+      const days = getDaysInMonth(month, year);
+
+      let incomeSum = 0;
+      let tipsSum = 0;
+
+      const fullRows = [];
+
+      for (let day = 1; day <= days; day++) {
+        const date = `${year}-${month
+          .toString()
+          .padStart(2, "0")}-${day
+          .toString()
+          .padStart(2, "0")}`;
+
+        const record = data?.find(
+          (d) => d.date === date
+        );
+
+        const uber = safeNumber(record?.uber);
+        const bolt = safeNumber(record?.bolt);
+        const sumup = safeNumber(record?.sumup);
+
+        const uberTips = safeNumber(record?.uber_tips);
+        const boltTips = safeNumber(record?.bolt_tips);
+        const sumupTips = safeNumber(record?.sumup_tips);
+
+        const total =
+          uber +
+          bolt +
+          sumup +
+          uberTips +
+          boltTips +
+          sumupTips;
+
+        incomeSum += uber + bolt + sumup;
+        tipsSum += uberTips + boltTips + sumupTips;
+
+        fullRows.push({
+          date,
+          uber,
+          bolt,
+          sumup,
+          uberTips,
+          boltTips,
+          sumupTips,
+          total,
+        });
+      }
+
+      setRows(fullRows);
+      setTotalIncome(incomeSum);
+      setTotalTips(tipsSum);
+
+      const { data: settings } = await supabase
+        .from("settings")
+        .select("admin_percentage, tax_percentage")
+        .single();
+
+      const adminPercent =
+        safeNumber(settings?.admin_percentage) / 100;
+
+      const taxPercent =
+        safeNumber(settings?.tax_percentage) / 100;
+
+      const salaryValue =
+        (incomeSum - tipsSum) *
+        adminPercent *
+        taxPercent;
+
+      setSalary(Math.round(salaryValue));
+
+    } catch (err) {
+      console.log(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchData();
+
+}, [month, year]);
 
   const getDaysInMonth = (m, y) => {
     return new Date(y, m, 0).getDate();
