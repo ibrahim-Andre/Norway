@@ -3,7 +3,6 @@ import {
   Button,
   Box
 } from "@mui/material"
-import { supabase } from "../../lib/supabase"
 import DriverTable from "../admin/components/DriverTable"
 import DriverForm from "../admin/components/DriverForm"
 
