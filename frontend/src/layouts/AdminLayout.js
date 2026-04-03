@@ -12,9 +12,6 @@ import {
 } from "@mui/material";
 
 import DashboardIcon from "@mui/icons-material/Dashboard";
-import DirectionsCarIcon from "@mui/icons-material/DirectionsCar";
-import PaymentsIcon from "@mui/icons-material/Payments";
-import PeopleIcon from "@mui/icons-material/People";
 import LogoutIcon from "@mui/icons-material/Logout";
 
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
@@ -25,9 +22,7 @@ const drawerWidth = 260;
 
 export default function AdminLayout() {
   const navigate = useNavigate();
-  const location = useLocation();
-
-  const [admin, setAdmin] = useState(null);
+  const location = useLocation();§
 
   useEffect(() => {
     const loadAdmin = async () => {
