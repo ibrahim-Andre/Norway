@@ -1,71 +1,181 @@
-import { Outlet, useNavigate } from "react-router-dom";
-import { supabase } from "../lib/supabase";
 import {
-    AppBar,
-    Toolbar,
-    Typography,
-    Button,
-    Box,
-    Drawer,
-    List,
-    ListItem,
-    ListItemText,
+  AppBar,
+  Toolbar,
+  Typography,
+  Button,
+  Box,
+  Drawer,
+  List,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  Divider,
 } from "@mui/material";
 
-const drawerWidth = 240;
+import DashboardIcon from "@mui/icons-material/Dashboard";
+import DirectionsCarIcon from "@mui/icons-material/DirectionsCar";
+import PaymentsIcon from "@mui/icons-material/Payments";
+import LogoutIcon from "@mui/icons-material/Logout";
+import { Outlet, useNavigate, useLocation } from "react-router-dom";
+import { supabase } from "../lib/supabase";
+import { useEffect, useState } from "react";
+
+
+const drawerWidth = 260;
 
 export default function DriverLayout() {
-    const navigate = useNavigate();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [driver, setDriver] = useState(null);
 
-    const handleLogout = async () => {
-        await supabase.auth.signOut();
-        navigate("/");
-    };
+useEffect(() => {
+  const loadDriver = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
 
-    return (
-        <Box sx={{ display: "flex" }}>
-            {/* Sidebar */}
-            <Drawer
-                variant="permanent"
-                sx={{
-                    width: drawerWidth,
-                    flexShrink: 0,
-                    [`& .MuiDrawer-paper`]: {
-                        width: drawerWidth,
-                        boxSizing: "border-box",
-                    },
-                }}
+    if (!user) return;
+
+    const { data } = await supabase
+      .from("drivers")
+      .select("full_name")
+      .eq("auth_user_id", user.id)
+      .single();
+
+    setDriver(data);
+  };
+
+  loadDriver();
+}, []);
+  
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate("/");
+  };
+
+  const menuItems = [
+    {
+      text: "Dashboard",
+      icon: <DashboardIcon />,
+      path: "/driver",
+    },
+    {
+      text: "Kazançlar",
+      icon: <PaymentsIcon />,
+      path: "/driver/earnings",
+    },
+    {
+      text: "Araçlar",
+      icon: <DirectionsCarIcon />,
+      path: "/driver/vehicles",
+    },
+  ];
+
+  return (
+    <Box sx={{ display: "flex" }}>
+      {/* SIDEBAR */}
+      <Drawer
+        variant="permanent"
+        sx={{
+          width: drawerWidth,
+          flexShrink: 0,
+          [`& .MuiDrawer-paper`]: {
+            width: drawerWidth,
+            boxSizing: "border-box",
+            background: "#111827",
+            color: "white",
+          },
+        }}
+      >
+        {/* Logo */}
+        <Box
+  sx={{
+    p: 3,
+    borderBottom: "1px solid #374151",
+  }}
+>
+  <Typography fontWeight="bold" fontSize={18}>
+    🚚 {driver?.full_name || "Driver"}
+  </Typography>
+
+  <Typography fontSize={13} sx={{ opacity: 0.7 }}>
+    Driver Panel
+  </Typography>
+</Box>
+
+        <List sx={{ mt: 2 }}>
+          {menuItems.map((item) => (
+            <ListItemButton
+              key={item.text}
+              onClick={() => navigate(item.path)}
+              selected={location.pathname === item.path}
+              sx={{
+                mx: 1,
+                borderRadius: 2,
+                mb: 1,
+
+                "&.Mui-selected": {
+                  backgroundColor: "#2563eb",
+                },
+
+                "&:hover": {
+                  backgroundColor: "#1f2937",
+                },
+              }}
             >
-                <Toolbar />
-                <Box sx={{ overflow: "auto" }}>
-                    <List>
-                        <ListItem button onClick={() => navigate("/driver")}>
-                            <ListItemText primary="Dashboard" />
-                        </ListItem>
+              <ListItemIcon sx={{ color: "white" }}>
+                {item.icon}
+              </ListItemIcon>
 
-                        <ListItem button onClick={() => navigate("/driver/vehicles")}>
-                            <ListItemText primary="Vehicles" />
-                        </ListItem>
-                    </List>
-                </Box>
-            </Drawer>
+              <ListItemText primary={item.text} />
+            </ListItemButton>
+          ))}
+        </List>
 
-            {/* Main Content */}
-            <Box sx={{ flexGrow: 1 }}>
-                {/* Header */}
-                <AppBar position="static">
-                    <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
-                        <Typography variant="h6">Driver Panel</Typography>
-                        <Button color="inherit" onClick={handleLogout}>
-                            Logout
-                        </Button>
-                    </Toolbar>
-                </AppBar>
+        <Divider sx={{ my: 2, background: "#374151" }} />
 
-                <Box sx={{ p: 4 }}>
-                    <Outlet />
-                </Box>
-            </Box>
+        {/* Logout */}
+        <Box sx={{ px: 2 }}>
+          <ListItemButton
+            onClick={handleLogout}
+            sx={{
+              borderRadius: 2,
+              color: "#f87171",
+
+              "&:hover": {
+                backgroundColor: "#1f2937",
+              },
+            }}
+          >
+            <ListItemIcon sx={{ color: "#f87171" }}>
+              <LogoutIcon />
+            </ListItemIcon>
+
+            <ListItemText primary="Logout" />
+          </ListItemButton>
         </Box>
-    );
+      </Drawer>
+
+      {/* MAIN */}
+      <Box sx={{ flexGrow: 1 }}>
+        <AppBar
+          position="static"
+          sx={{
+            background: "white",
+            color: "black",
+            boxShadow: "0 2px 6px rgba(0,0,0,0.05)",
+          }}
+        >
+          <Toolbar>
+            <Typography variant="h6" fontWeight="bold">
+              Driver Dashboard
+            </Typography>
+          </Toolbar>
+        </AppBar>
+
+        <Box sx={{ p: 4 }}>
+          <Outlet />
+        </Box>
+      </Box>
+    </Box>
+  );
 }

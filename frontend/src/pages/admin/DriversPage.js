@@ -39,17 +39,7 @@ export default function DriverDashboard() {
 
   return (
     <>
-      <AppBar position="static">
-        <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
-          <Typography variant="h6">
-            Driver Dashboard
-          </Typography>
-
-          <Button color="inherit" onClick={handleLogout}>
-            Logout
-          </Button>
-        </Toolbar>
-      </AppBar>
+      
 
       <Box sx={{ p: 3 }}>
         <Button

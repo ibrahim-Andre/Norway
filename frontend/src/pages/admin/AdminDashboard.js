@@ -2,18 +2,29 @@ import { useEffect, useState } from "react";
 import styled from 'styled-components';
 import { supabase } from "../../lib/supabase";
 import MaintenanceOverview from './Dashboard/MaintenanceOverview';
-import Header from "../../components/admin/Header";
 import StatCard from "../../components/admin/StatCard";
-
+import PeopleIcon from "@mui/icons-material/People";
+import LocalTaxiIcon from "@mui/icons-material/LocalTaxi";
+import DirectionsCarIcon from "@mui/icons-material/DirectionsCar";
+import PaymentsIcon from "@mui/icons-material/Payments";
 
 
 function AdminDashboard() {
   const [drivers, setDrivers] = useState([]);
   const [admin, setAdmin] = useState(null);
+  const [totalEarnings, setTotalEarnings] = useState(0);
 
   useEffect(() => {
     const loadData = async () => {
       const { data: { user } } = await supabase.auth.getUser();
+	  const { data, error } = await supabase
+  .from("trips")
+  .select("fare");
+
+const total =
+  data?.reduce((sum, t) => sum + Number(t.fare), 0) || 0;
+
+setTotalEarnings(total);
 
       const { data: profile } = await supabase
         .from("profiles")
@@ -37,19 +48,35 @@ function AdminDashboard() {
   return (
     <Layout>
       <Content>
-        <Header username={admin?.username} />
-		
-
         <Cards>
-          <StatCard title="Toplam Sürücü" value={drivers.length} />
-          <StatCard
-            title="Online Sürücü"
-            value={drivers.filter(d => d.is_online).length}
-          />
-          <StatCard title="Toplam Yolculuk" value="2.382" />
-          <StatCard title="Kazanç" value="₺21.300" />
-		  <MaintenanceOverview />
-        </Cards>
+  <StatCard
+    title="Toplam Sürücü"
+    value={drivers.length}
+    icon="👤"
+    color="#2563eb"
+  />
+
+  <StatCard
+    title="Online Sürücü"
+    value={drivers.filter(d => d.is_online).length}
+    icon="🚕"
+    color="#16a34a"
+  />
+
+  <StatCard
+    title="Toplam Yolculuk"
+    value="2.382"
+    icon="🚗"
+    color="#9333ea"
+  />
+
+  <StatCard
+  title="Toplam Kazanç"
+  value={`₺${totalEarnings.toLocaleString()}`}
+/>
+
+  <MaintenanceOverview />
+</Cards>
 
         <List>
           <h3>Sürücüler</h3>

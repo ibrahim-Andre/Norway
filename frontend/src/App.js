@@ -41,7 +41,7 @@ function App() {
         {/* DRIVER – AYRI PANEL */}
         <Route path="/driver" element={ <DriverLayout /> } >
           <Route index element={<DriverDashboard />} />
-		  <Route path="/driver/earnings" element={<DriverEarningsPage />} />
+		  <Route path="earnings" element={<DriverEarningsPage />} />
           <Route path="vehicles" element={<DriverVehicles />} />
         </Route>
 

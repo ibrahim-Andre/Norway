@@ -4,9 +4,13 @@ import { supabase } from "../../lib/supabaseClient";
 export default function DriversEarningsPage() {
   const [drivers, setDrivers] = useState([]);
   const [earnings, setEarnings] = useState([]);
+  const [salarySettings, setSalarySettings] = useState([]);
+
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const safeNumber = (v) => Number(v) || 0;
 
   useEffect(() => {
     fetchData();
@@ -16,15 +20,15 @@ export default function DriversEarningsPage() {
     setLoading(true);
 
     try {
-      // Drivers çek
-      const { data: driversData, error: driversError } = await supabase
+      // DRIVERS
+
+      const { data: driversData } = await supabase
         .from("drivers")
         .select("*")
-        .order("name", { ascending: true });
+        .order("full_name", { ascending: true });
 
-      if (driversError) throw driversError;
+      // EARNINGS
 
-      // Earnings çek
       let query = supabase
         .from("driver_daily_income")
         .select("*");
@@ -37,14 +41,20 @@ export default function DriversEarningsPage() {
         query = query.lte("date", endDate);
       }
 
-      const { data: earningsData, error: earningsError } = await query;
+      const { data: earningsData } = await query;
 
-      if (earningsError) throw earningsError;
+      // SALARY SETTINGS
+
+      const { data: salaryData } = await supabase
+        .from("driver_salary_settings")
+        .select("*");
 
       setDrivers(driversData || []);
       setEarnings(earningsData || []);
+      setSalarySettings(salaryData || []);
+
     } catch (error) {
-      console.error("Veri alınamadı:", error.message);
+      console.error(error);
     }
 
     setLoading(false);
@@ -67,52 +77,115 @@ export default function DriversEarningsPage() {
         (now - date) / (1000 * 60 * 60 * 24)
       );
 
-      if (diffDays === 0) daily += Number(e.amount);
-      if (diffDays <= 7) weekly += Number(e.amount);
-      if (diffDays <= 30) monthly += Number(e.amount);
-      if (diffDays <= 365) yearly += Number(e.amount);
+      const amount =
+        safeNumber(e.uber) +
+        safeNumber(e.bolt) +
+        safeNumber(e.sumup);
+
+      if (diffDays === 0) daily += amount;
+      if (diffDays <= 7) weekly += amount;
+      if (diffDays <= 30) monthly += amount;
+      if (diffDays <= 365) yearly += amount;
     });
 
     return { daily, weekly, monthly, yearly };
   };
 
-  const handleDelete = async (driverId) => {
-    if (!window.confirm("Şoför silinsin mi?")) return;
+  const calculateSalary = (driverId) => {
+    const settings = salarySettings.find(
+      (s) => s.driver_id === driverId
+    );
 
-    try {
-      await supabase
-        .from("drivers")
-        .delete()
-        .eq("id", driverId);
+    if (!settings) return 0;
 
-      fetchData();
-    } catch (error) {
-      console.error("Silme hatası:", error.message);
+    let income = 0;
+    let tips = 0;
+
+    earnings.forEach((e) => {
+      if (e.driver_id !== driverId) return;
+
+      income +=
+        safeNumber(e.uber) +
+        safeNumber(e.bolt) +
+        safeNumber(e.sumup);
+
+      tips +=
+        safeNumber(e.uber_tips) +
+        safeNumber(e.bolt_tips) +
+        safeNumber(e.sumup_tips);
+    });
+
+    const baseIncome = income - tips;
+
+    const threshold =
+      safeNumber(settings.threshold);
+
+    const percentAbove =
+      safeNumber(settings.percent_above) / 100;
+
+    const percentBelow =
+      safeNumber(settings.percent_below) / 100;
+
+    const taxPercent =
+      safeNumber(settings.tax_percent) / 100;
+
+    let salary = 0;
+
+    if (income > threshold) {
+      salary =
+        baseIncome *
+        percentAbove *
+        taxPercent;
+    } else {
+      salary =
+        baseIncome *
+        percentBelow *
+        taxPercent;
     }
+
+    return Math.round(salary);
   };
 
-  const handleEdit = (driver) => {
-    alert(`Düzenle: ${driver.name}`);
+  const handleDelete = async (driverId) => {
+    if (!window.confirm("Şoför silinsin mi?"))
+      return;
+
+    await supabase
+      .from("drivers")
+      .delete()
+      .eq("id", driverId);
+
+    fetchData();
   };
 
   return (
     <div style={{ padding: 20 }}>
+
       <h1>Şoför Kazanç Listesi</h1>
 
       {/* Tarih Filtre */}
+
       <div style={{ marginBottom: 20 }}>
-        <label>Başlangıç Tarihi:</label>
+        <label>Başlangıç:</label>
+
         <input
           type="date"
           value={startDate}
-          onChange={(e) => setStartDate(e.target.value)}
+          onChange={(e) =>
+            setStartDate(e.target.value)
+          }
         />
 
-        <label style={{ marginLeft: 10 }}>Bitiş Tarihi:</label>
+        <label style={{ marginLeft: 10 }}>
+          Bitiş:
+        </label>
+
         <input
           type="date"
           value={endDate}
-          onChange={(e) => setEndDate(e.target.value)}
+          onChange={(e) =>
+            setEndDate(e.target.value)
+          }
         />
 
         <button
@@ -125,7 +198,11 @@ export default function DriversEarningsPage() {
 
       {loading && <p>Yükleniyor...</p>}
 
-      <table border="1" cellPadding="10" style={{ width: "100%" }}>
+      <table
+        border="1"
+        cellPadding="10"
+        style={{ width: "100%" }}
+      >
         <thead>
           <tr>
             <th>Şoför</th>
@@ -133,43 +210,76 @@ export default function DriversEarningsPage() {
             <th>Haftalık</th>
             <th>Aylık</th>
             <th>Yıllık</th>
+            <th>Maaş</th>
             <th>İşlemler</th>
           </tr>
         </thead>
 
         <tbody>
+
           {drivers.map((driver) => {
-            const totals = calculateTotals(driver.id);
+            const totals =
+              calculateTotals(driver.id);
+
+            const salary =
+              calculateSalary(driver.id);
 
             return (
               <tr key={driver.id}>
-                <td>{driver.name}</td>
-
-                <td>{totals.daily} ₺</td>
-                <td>{totals.weekly} ₺</td>
-                <td>{totals.monthly} ₺</td>
-                <td>{totals.yearly} ₺</td>
 
                 <td>
-                  <button
-                    onClick={() => handleEdit(driver)}
-                    style={{ marginRight: 5 }}
-                  >
-                    Düzenle
-                  </button>
+                  {driver.full_name}
+                </td>
+
+                <td>
+                  {totals.daily} SEK
+                </td>
+
+                <td>
+                  {totals.weekly} SEK
+                </td>
+
+                <td>
+                  {totals.monthly} SEK
+                </td>
+
+                <td>
+                  {totals.yearly} SEK
+                </td>
+
+                <td
+                  style={{
+                    fontWeight: "bold",
+                    color: "green",
+                  }}
+                >
+                  {salary} SEK
+                </td>
+
+                <td>
 
                   <button
-                    onClick={() => handleDelete(driver.id)}
-                    style={{ backgroundColor: "red", color: "white" }}
+                    style={{
+                      backgroundColor: "red",
+                      color: "white",
+                    }}
+                    onClick={() =>
+                      handleDelete(driver.id)
+                    }
                   >
                     Sil
                   </button>
+
                 </td>
+
               </tr>
             );
           })}
+
         </tbody>
+
       </table>
+
     </div>
   );
 }

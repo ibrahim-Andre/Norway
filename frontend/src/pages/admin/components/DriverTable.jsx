@@ -8,10 +8,13 @@ import AttachMoneyIcon from "@mui/icons-material/AttachMoney"
 import { supabase } from "../../../lib/supabase"
 import { useNavigate } from "react-router-dom"
 import DriverDailyIncomeForm from "./DriverDailyIncomeForm"
+import SalarySettingsForm from "./SalarySettingsForm"
 
 export default function DriverTable({ onEdit, refreshKey }) {
   const [rows, setRows] = useState([])
   const [loading, setLoading] = useState(true)
+  const [salaryOpen, setSalaryOpen] = useState(false)
+  const [salaryDriver, setSalaryDriver] = useState(null)
 
   // GELIR MODAL STATE
   const [incomeOpen, setIncomeOpen] = useState(false)
@@ -44,6 +47,10 @@ export default function DriverTable({ onEdit, refreshKey }) {
     setLoading(false)
   }
 
+const handleSalarySettings = (driver) => {
+  setSalaryDriver(driver)
+  setSalaryOpen(true)
+}
   const updateStatus = async (id, status) => {
     await supabase
       .from("drivers")
@@ -81,6 +88,8 @@ export default function DriverTable({ onEdit, refreshKey }) {
 
     fetchDrivers()
   }
+  
+  
 
   // GELIR BUTONU
   const handleIncomeClick = (driver) => {
@@ -211,6 +220,14 @@ export default function DriverTable({ onEdit, refreshKey }) {
           >
             <AttachMoneyIcon fontSize="small" />
           </IconButton>
+		  {/* MAAŞ AYARLARI */}
+<IconButton
+  size="small"
+  color="primary"
+  onClick={() => handleSalarySettings(params.row)}
+>
+  %
+</IconButton>
         </>
       )
     }
@@ -247,6 +264,25 @@ export default function DriverTable({ onEdit, refreshKey }) {
           )}
         </DialogContent>
       </Dialog>
+	  <Dialog
+  open={salaryOpen}
+  onClose={() => setSalaryOpen(false)}
+  fullWidth
+  maxWidth="sm"
+>
+  <DialogTitle>
+    {salaryDriver?.full_name} - Maaş Ayarları
+  </DialogTitle>
+
+  <DialogContent>
+    {salaryDriver && (
+      <SalarySettingsForm
+        driverId={salaryDriver.id}
+        onClose={() => setSalaryOpen(false)}
+      />
+    )}
+  </DialogContent>
+</Dialog>
     </>
   )
 }
