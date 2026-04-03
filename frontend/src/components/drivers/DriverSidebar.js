@@ -1,4 +1,5 @@
 import { NavLink } from "react-router-dom";
+import { FaMoneyBillWave } from "react-icons/fa";
 
 const DriverSidebar = () => {
   return (
@@ -21,6 +22,12 @@ const DriverSidebar = () => {
         >
           Profile
         </NavLink>
+		
+          <NavLink to="/driver/earnings">
+            <FaMoneyBillWave />
+            <span>Kazançlar</span>
+          </NavLink>
+        
 
         <NavLink
           to="/driver/vehicles"

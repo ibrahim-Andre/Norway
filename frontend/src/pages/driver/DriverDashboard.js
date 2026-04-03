@@ -81,7 +81,7 @@ export default function DriverPanel() {
                 Total Earnings
               </Typography>
               <Typography variant="h6">
-                0 NOK
+                0 SEK
               </Typography>
             </CardContent>
           </Card>

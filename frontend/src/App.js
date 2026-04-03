@@ -10,6 +10,7 @@ import AdminLayout from "./layouts/AdminLayout";
 import DriverLayout from "./layouts/DriverLayout";
 import VehiclesPage from "./pages/admin/VehiclesPage";
 import EarningsPage from "./pages/admin/Earnings/EarningsPage";
+import DriverEarningsPage from "./pages/driver/DriverEarningsPage";
 
 function App() {
   return (
@@ -38,15 +39,9 @@ function App() {
         </Route>
 
         {/* DRIVER – AYRI PANEL */}
-        <Route
-          path="/driver"
-          element={
-            
-              <DriverLayout />
-            
-          }
-        >
+        <Route path="/driver" element={ <DriverLayout /> } >
           <Route index element={<DriverDashboard />} />
+		  <Route path="/driver/earnings" element={<DriverEarningsPage />} />
           <Route path="vehicles" element={<DriverVehicles />} />
         </Route>
 
