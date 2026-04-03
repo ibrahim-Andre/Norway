@@ -19,7 +19,7 @@ const drawerWidth = 260;
 
 export default function AdminLayout() {
   const navigate = useNavigate();
-  const location = useLocation();§
+  const location = useLocation();
 
   useEffect(() => {
     const loadAdmin = async () => {
@@ -41,10 +41,6 @@ export default function AdminLayout() {
     loadAdmin();
   }, []);
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    navigate("/");
-  };
 
   const menuItems = [
     {
