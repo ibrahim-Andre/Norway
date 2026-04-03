@@ -3,21 +3,18 @@ import styled from 'styled-components';
 import { supabase } from "../../lib/supabase";
 import MaintenanceOverview from './Dashboard/MaintenanceOverview';
 import StatCard from "../../components/admin/StatCard";
-import PeopleIcon from "@mui/icons-material/People";
-import LocalTaxiIcon from "@mui/icons-material/LocalTaxi";
-import DirectionsCarIcon from "@mui/icons-material/DirectionsCar";
-import PaymentsIcon from "@mui/icons-material/Payments";
+
 
 
 function AdminDashboard() {
   const [drivers, setDrivers] = useState([]);
-  const [admin, setAdmin] = useState(null);
+  const [, setAdmin] = useState(null);
   const [totalEarnings, setTotalEarnings] = useState(0);
 
   useEffect(() => {
     const loadData = async () => {
       const { data: { user } } = await supabase.auth.getUser();
-	  const { data, error } = await supabase
+	  const { data } = await supabase
   .from("trips")
   .select("fare");
 

@@ -13,8 +13,12 @@ export default function DriversEarningsPage() {
   const safeNumber = (v) => Number(v) || 0;
 
   useEffect(() => {
-    fetchData();
-  }, []);
+  const load = async () => {
+    await fetchData()
+  }
+
+  load()
+}, [])
 
   const fetchData = async () => {
     setLoading(true);

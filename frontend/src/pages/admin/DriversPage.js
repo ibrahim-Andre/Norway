@@ -1,8 +1,5 @@
 import { useState } from "react"
 import {
-  AppBar,
-  Toolbar,
-  Typography,
   Button,
   Box
 } from "@mui/material"
@@ -16,10 +13,7 @@ export default function DriverDashboard() {
   const [selectedDriver, setSelectedDriver] = useState(null)
   const [refreshKey, setRefreshKey] = useState(0)
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut()
-    window.location.href = "/login"
-  }
+  
 
   const handleCreate = () => {
     setMode("create")
