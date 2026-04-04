@@ -50,15 +50,16 @@ export default function DriverForm({
         : "update-driver";
 
     const payload =
-      mode === "create"
-        ? form
-        : {
-            id: initialData.id,
-            full_name: form.full_name,
-            phone: form.phone,
-            license_no: form.license_no,
-            license_expiry: form.license_expiry
-          };
+  mode === "create"
+    ? form
+    : {
+        id: initialData.id,
+        full_name: form.full_name,
+        phone: form.phone,
+        license_no: form.license_no,
+        license_expiry: form.license_expiry,
+        password: form.password || null
+      };
 
     const res = await fetch(
       `${SUPABASE_URL}/functions/v1/${endpoint}`,
@@ -140,6 +141,20 @@ export default function DriverForm({
             value={form.license_expiry || ""}
             onChange={handleChange}
           />
+		  
+		  <TextField
+  name="password"
+  label={
+    mode === "create"
+      ? "Password"
+      : "Yeni Şifre (boş bırakılırsa değişmez)"
+  }
+  type="password"
+  fullWidth
+  required={mode === "create"}
+  value={form.password}
+  onChange={handleChange}
+/>
 
           {/* SADECE CREATE */}
           {mode === "create" && (

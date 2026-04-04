@@ -18,7 +18,8 @@ import LogoutIcon from "@mui/icons-material/Logout";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import { useEffect, useState } from "react";
-
+import LockResetIcon from "@mui/icons-material/LockReset";
+import ChangePasswordDialog from "../components/drivers/ChangePasswordDialog";
 
 const drawerWidth = 260;
 
@@ -26,6 +27,7 @@ export default function DriverLayout() {
   const navigate = useNavigate();
   const location = useLocation();
   const [driver, setDriver] = useState(null);
+  const [openPasswordDialog, setOpenPasswordDialog] = useState(false);
 
 useEffect(() => {
   const loadDriver = async () => {
@@ -131,6 +133,27 @@ useEffect(() => {
         </List>
 
         <Divider sx={{ my: 2, background: "#374151" }} />
+		
+		{/* Change Password */}
+
+<Box sx={{ px: 2, mb: 1 }}>
+  <ListItemButton
+    onClick={() => setOpenPasswordDialog(true)}
+    sx={{
+      borderRadius: 2,
+
+      "&:hover": {
+        backgroundColor: "#1f2937",
+      },
+    }}
+  >
+    <ListItemIcon sx={{ color: "white" }}>
+      <LockResetIcon />
+    </ListItemIcon>
+
+    <ListItemText primary="Şifre Değiştir" />
+  </ListItemButton>
+</Box>
 
         {/* Logout */}
         <Box sx={{ px: 2 }}>
@@ -152,6 +175,11 @@ useEffect(() => {
             <ListItemText primary="Logout" />
           </ListItemButton>
         </Box>
+		
+		<ChangePasswordDialog
+  open={openPasswordDialog}
+  onClose={() => setOpenPasswordDialog(false)}
+/>
       </Drawer>
 
       {/* MAIN */}

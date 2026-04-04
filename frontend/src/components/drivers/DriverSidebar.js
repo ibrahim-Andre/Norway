@@ -1,11 +1,10 @@
 import { NavLink } from "react-router-dom";
 import { FaMoneyBillWave } from "react-icons/fa";
 
+
 const DriverSidebar = () => {
   return (
-  <div style={{ color: "red", fontSize: 20 }}>
-  TEST SIDEBAR
-</div>
+  
     <aside className="w-64 bg-white shadow-lg p-6">
       <h2 className="text-2xl font-bold mb-10 text-gray-800">
         Driver Panel
@@ -38,6 +37,8 @@ const DriverSidebar = () => {
         >
           Vehicles
         </NavLink>
+		
+		
       </nav>
     </aside>
   );
