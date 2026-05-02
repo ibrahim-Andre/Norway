@@ -235,15 +235,34 @@ const handleSalarySettings = (driver) => {
 
   return (
     <>
-      <Box sx={{ height: 600, width: "100%" }}>
+      <Box sx={{ width: "100%", height: { xs: 500, sm: 600, md: 650 }}>
         <DataGrid
           rows={rows}
           columns={columns}
+		  autoHeight
           getRowId={(row) => row.id}
           loading={loading}
           pageSize={10}
           rowsPerPageOptions={[10, 25, 50]}
           disableSelectionOnClick
+		  sx={{
+      width: "100%",
+      minWidth: 700,
+
+      "& .MuiDataGrid-cell": {
+        fontSize: {
+          xs: "12px",
+          sm: "14px"
+        }
+      },
+
+      "& .MuiDataGrid-columnHeaders": {
+        fontSize: {
+          xs: "12px",
+          sm: "14px"
+        }
+      }
+    }}
         />
       </Box>
 

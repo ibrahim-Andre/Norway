@@ -204,7 +204,7 @@ export default function AdminLayout() {
 </Toolbar>
         </AppBar>
 
-        <Box sx={{ p: 4 }}>
+        <Box sx={{ p: { xs: 1, sm: 2, md: 4 } }}>
           <Outlet />
         </Box>
       </Box>

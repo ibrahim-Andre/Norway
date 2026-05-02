@@ -40,5 +40,17 @@ table {
   }
 
 }
+html, body, #root {
+  width: 100%;
+  overflow-x: hidden;
+}
+
+.MuiDataGrid-root {
+  width: 100%;
+}
+
+.MuiDataGrid-main {
+  overflow-x: auto;
+}
 `;
 
