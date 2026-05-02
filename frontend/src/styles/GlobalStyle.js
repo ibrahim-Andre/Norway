@@ -46,11 +46,10 @@ html, body, #root {
 }
 
 .MuiDataGrid-root {
-  width: 100%;
+  overflow-x: auto !important;
 }
 
 .MuiDataGrid-main {
-  overflow-x: auto;
+  overflow-x: auto !important;
 }
 `;
-

@@ -101,17 +101,17 @@ const handleSalarySettings = (driver) => {
     {
       field: "full_name",
       headerName: "Driver",
-      flex: 1
+      width: 180
     },
     {
       field: "phone",
       headerName: "Phone",
-      flex: 1
+      width: 150
     },
     {
       field: "status",
       headerName: "Status",
-      flex: 1,
+      width: 180,
       renderCell: (params) => (
         <Chip
           label={params.value}
@@ -129,13 +129,13 @@ const handleSalarySettings = (driver) => {
     {
       field: "rating",
       headerName: "Rating",
-      flex: 0.7,
+      width: 100,
       renderCell: (params) => params.value ?? "-"
     },
     {
       field: "vehicles",
       headerName: "Assigned Vehicles",
-      flex: 1.5,
+      width: 180,
       renderCell: (params) => {
         const activeAssignments =
           params.row.driver_vehicle_assignments?.filter(a => a.is_active)
@@ -162,7 +162,7 @@ const handleSalarySettings = (driver) => {
     {
       field: "license_expiry",
       headerName: "License Expiry",
-      flex: 1,
+      width: 230,
       renderCell: (params) => {
         const expired = new Date(params.value) < new Date()
         return (
@@ -176,7 +176,7 @@ const handleSalarySettings = (driver) => {
       field: "actions",
       headerName: "Actions",
       sortable: false,
-      flex: 1.3,
+      width: 180,
 
       renderCell: (params) => (
         <>
@@ -234,74 +234,81 @@ const handleSalarySettings = (driver) => {
   ]
 
   return (
-    <>
-      <Box sx={{ width: "100%", height: { xs: 500, sm: 600, md: 650 }}>
-        <DataGrid
-          rows={rows}
-          columns={columns}
-		  autoHeight
-          getRowId={(row) => row.id}
-          loading={loading}
-          pageSize={10}
-          rowsPerPageOptions={[10, 25, 50]}
-          disableSelectionOnClick
-		  sx={{
+  <Box
+    sx={{
       width: "100%",
-      minWidth: 700,
-
-      "& .MuiDataGrid-cell": {
-        fontSize: {
-          xs: "12px",
-          sm: "14px"
-        }
-      },
-
-      "& .MuiDataGrid-columnHeaders": {
-        fontSize: {
-          xs: "12px",
-          sm: "14px"
-        }
-      }
+      overflow: "hidden"   // ⭐ burada değişti
     }}
-        />
-      </Box>
+  >
+    <Box
+      sx={{
+        width: "100%",
+        minWidth: 1200,   // ⭐ tablo genişliği
+        height: 600       // ⭐ autoHeight kaldırıldı
+      }}
+    >
+      <DataGrid
+        rows={rows}
+        columns={columns}
+        getRowId={(row) => row.id}
+        loading={loading}
 
-      {/* POPUP */}
-      <Dialog
-        open={incomeOpen}
-        onClose={() => setIncomeOpen(false)}
-        fullWidth
-        maxWidth="sm"
-      >
-        <DialogTitle>
-          {selectedDriver?.full_name} - Günlük Kazanç Girişi
-        </DialogTitle>
+        pageSize={10}
+        rowsPerPageOptions={[10, 25, 50]}
 
-        <DialogContent>
-          {selectedDriver && (
-            <DriverDailyIncomeForm driverId={selectedDriver.id} />
-          )}
-        </DialogContent>
-      </Dialog>
-	  <Dialog
-  open={salaryOpen}
-  onClose={() => setSalaryOpen(false)}
-  fullWidth
-  maxWidth="sm"
->
-  <DialogTitle>
-    {salaryDriver?.full_name} - Maaş Ayarları
-  </DialogTitle>
+        disableRowSelectionOnClick
+		
+		disableVirtualization   // ⭐ önemli
+		scrollbarSize={10}      // ⭐ scroll görünür
 
-  <DialogContent>
-    {salaryDriver && (
-      <SalarySettingsForm
-        driverId={salaryDriver.id}
-        onClose={() => setSalaryOpen(false)}
+        sx={{
+          width: "100%",
+		  minWidth: 1200,
+		  overflowX: "auto"     // ⭐ kr		  
+        }}
       />
-    )}
-  </DialogContent>
-</Dialog>
-    </>
-  )
+    </Box>
+
+    {/* POPUP */}
+    <Dialog
+      open={incomeOpen}
+      onClose={() => setIncomeOpen(false)}
+      fullWidth
+      maxWidth="sm"
+    >
+      <DialogTitle>
+        {selectedDriver?.full_name} - Günlük Kazanç Girişi
+      </DialogTitle>
+
+      <DialogContent>
+        {selectedDriver && (
+          <DriverDailyIncomeForm
+            driverId={selectedDriver.id}
+          />
+        )}
+      </DialogContent>
+    </Dialog>
+
+    {/* SALARY */}
+    <Dialog
+      open={salaryOpen}
+      onClose={() => setSalaryOpen(false)}
+      fullWidth
+      maxWidth="sm"
+    >
+      <DialogTitle>
+        {salaryDriver?.full_name} - Maaş Ayarları
+      </DialogTitle>
+
+      <DialogContent>
+        {salaryDriver && (
+          <SalarySettingsForm
+            driverId={salaryDriver.id}
+            onClose={() => setSalaryOpen(false)}
+          />
+        )}
+      </DialogContent>
+    </Dialog>
+  </Box>
+);
 }
