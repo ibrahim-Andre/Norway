@@ -4,17 +4,13 @@ const Card = styled.div`
   background: white;
   padding: 22px;
   border-radius: 16px;
-  box-shadow: 0 10px 20px rgba(0,0,0,0.05);
 
   display: flex;
   align-items: center;
   gap: 16px;
 
-  transition: 0.2s;
-
-  &:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 14px 26px rgba(0,0,0,0.08);
+  @media (max-width: 768px) {
+    padding: 16px;
   }
 `;
 

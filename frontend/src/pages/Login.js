@@ -17,7 +17,13 @@ const Card = styled.div`
   max-width: 420px;
   background: white;
   border-radius: 16px;
+
   padding: 40px 30px;
+
+  @media (max-width: 768px) {
+    padding: 24px;
+    margin: 16px;
+  }
 `;
 
 const Input = styled.input`

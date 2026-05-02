@@ -202,11 +202,16 @@ export default function DriversEarningsPage() {
 
       {loading && <p>Yükleniyor...</p>}
 
-      <table
-        border="1"
-        cellPadding="10"
-        style={{ width: "100%" }}
-      >
+      <div style={{ overflowX: "auto" }}>
+
+<table
+  border="1"
+  cellPadding="10"
+  style={{
+    width: "100%",
+    minWidth: 700
+  }}
+>
         <thead>
           <tr>
             <th>Şoför</th>
