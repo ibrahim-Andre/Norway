@@ -24,4 +24,20 @@ export const GlobalStyle = createGlobalStyle`
 
 }
 `;
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
 
+@media (max-width: 768px) {
+
+  table {
+    font-size: 12px;
+  }
+
+  th,
+  td {
+    padding: 6px;
+  }
+
+}

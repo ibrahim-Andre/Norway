@@ -9,6 +9,20 @@ export default function DriversEarningsPage() {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [loading, setLoading] = useState(false);
+  const tableStyle = {
+  width: "100%",
+  minWidth: 800,
+  borderCollapse: "collapse"
+};
+
+const cellStyle = {
+  padding: 10
+};
+
+const mobileCellStyle = {
+  padding: 6,
+  fontSize: 12
+};
 
   const safeNumber = (v) => Number(v) || 0;
 
@@ -202,16 +216,23 @@ export default function DriversEarningsPage() {
 
       {loading && <p>Yükleniyor...</p>}
 
-      <div style={{ overflowX: "auto" }}>
+      <div
+  style={{
+    width: "100%",
+    overflowX: "auto"
+  }}
+>
 
 <table
   border="1"
   cellPadding="10"
   style={{
     width: "100%",
-    minWidth: 700
+    minWidth: 800
   }}
 >
+</table>
+</div>
         <thead>
           <tr>
             <th>Şoför</th>
@@ -236,9 +257,15 @@ export default function DriversEarningsPage() {
             return (
               <tr key={driver.id}>
 
-                <td>
-                  {driver.full_name}
-                </td>
+                <td
+  style={
+    window.innerWidth < 768
+      ? mobileCellStyle
+      : cellStyle
+  }
+>
+  {driver.full_name}
+</td>
 
                 <td>
                   {totals.daily} SEK
