@@ -56,7 +56,11 @@ export default function InvoiceForm({ onClose }) {
 
   if (!file) return null;
 
-  const cleanName = sanitizeFileName(file.name);
+  const cleanName = file.name
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, "_")
+    .replace(/[^a-zA-Z0-9._-]/g, "");
 
   const fileName =
     Date.now() + "_" + cleanName;
@@ -67,7 +71,7 @@ export default function InvoiceForm({ onClose }) {
     .upload(fileName, file);
 
   if (error) {
-    alert(error.message);
+    console.log("UPLOAD ERROR:", error);
     return null;
   }
 
@@ -81,42 +85,56 @@ export default function InvoiceForm({ onClose }) {
 
   const handleSubmit = async () => {
 
-    if (!form.pay_to || !form.payment_date || !form.amount) {
-      alert("Gerekli alanlar eksik");
-      return;
-    }
+  try {
 
     let fileUrl = null;
+
+    // 1) FILE UPLOAD
 
     if (file) {
 
       fileUrl = await uploadFile();
 
+      console.log("UPLOAD URL:", fileUrl);
+
+      if (!fileUrl) {
+        alert("Dosya yüklenemedi");
+        return;
+      }
+
     }
+
+    // 2) INSERT DATA
+
+    const insertData = {
+      ...form,
+      amount: Number(form.amount),
+      document_url: fileUrl,
+    };
+
+    console.log("INSERT DATA:", insertData);
 
     const { error } = await supabase
       .from("invoices")
-      .insert([
-        {
-          ...form,
-        amount: Number(form.amount),
-        document_url: fileUrl, // 🔥 KRİTİK
-        },
-      ]);
+      .insert([insertData]);
 
     if (error) {
-
+      console.log("INSERT ERROR:", error);
       alert(error.message);
-
       return;
-
     }
 
-    alert("Ödeme kaydedildi");
+    alert("Kayıt başarılı");
 
     onClose();
 
-  };
+  } catch (err) {
+
+    console.log("GENEL HATA:", err);
+
+  }
+
+};
 
   return (
     <Box
@@ -238,9 +256,9 @@ export default function InvoiceForm({ onClose }) {
       )}
 
       <Button
-        variant="contained"
-        onClick={handleSubmit}
-      >
+  type="button"
+  onClick={handleSubmit}
+>
         Kaydet
       </Button>
 
