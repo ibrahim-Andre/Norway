@@ -10,6 +10,7 @@ const Sidebar = () => {
       <SidebarItem to="/admin/drivers">👤 Driver</SidebarItem>
       <SidebarItem to="/admin/vehicles">🚗 Araçlar</SidebarItem>
 	  <SidebarItem to="/admin/earnings">💰 Kazançlar</SidebarItem>
+	  <SidebarItem to="/admin/invoices">🧾 Faturalar</SidebarItem>
     </SidebarWrapper>
   );
 };

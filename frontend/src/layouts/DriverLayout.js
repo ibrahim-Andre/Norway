@@ -22,6 +22,8 @@ import LockResetIcon from "@mui/icons-material/LockReset";
 import ChangePasswordDialog from "../components/drivers/ChangePasswordDialog";
 import MenuIcon from "@mui/icons-material/Menu";
 import { IconButton, useTheme, useMediaQuery } from "@mui/material";
+import NavigateNextIcon from "@mui/icons-material/NavigateNext";
+import { Breadcrumbs } from "@mui/material";
 const drawerWidth = 260;
 
 export default function DriverLayout() {
@@ -32,7 +34,26 @@ export default function DriverLayout() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  
+  const pageConfig = {
+  "/driver": {
+    title: "Dashboard",
+    icon: <DashboardIcon />,
+  },
+  "/driver/earnings": {
+    title: "Kazançlarım",
+    icon: <PaymentsIcon />,
+  },
+  "/driver/vehicles": {
+    title: "Araçlar",
+    icon: <DirectionsCarIcon />,
+  },
+};
 
+const currentPage = pageConfig[location.pathname] || {
+  title: "Dashboard",
+  icon: <DashboardIcon />,
+};
 useEffect(() => {
   const loadDriver = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -115,20 +136,13 @@ useEffect(() => {
             <ListItemButton
               key={item.text}
               onClick={() => navigate(item.path)}
-              selected={location.pathname === item.path}
+              selected={location.pathname.startsWith(item.path)}
               sx={{
-                mx: 1,
-                borderRadius: 2,
-                mb: 1,
-
-                "&.Mui-selected": {
-                  backgroundColor: "#2563eb",
-                },
-
-                "&:hover": {
-                  backgroundColor: "#1f2937",
-                },
-              }}
+  transition: "all 0.2s",
+  "&:hover": {
+    transform: "translateX(5px)",
+  },
+}}
             >
               <ListItemIcon sx={{ color: "white" }}>
                 {item.icon}
@@ -211,9 +225,33 @@ useEffect(() => {
     </IconButton>
   )}
 
-  <Typography variant="h6" fontWeight="bold">
-    Admin Dashboard
-  </Typography>
+  <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
+  
+  {/* LEFT */}
+  <Box>
+    
+    {/* TITLE + ICON */}
+    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+      {currentPage.icon}
+      <Typography variant="h6" fontWeight="bold">
+        {currentPage.title}
+      </Typography>
+    </Box>
+
+    {/* BREADCRUMB */}
+    <Breadcrumbs
+      separator={<NavigateNextIcon fontSize="small" />}
+      sx={{ fontSize: 12, color: "gray" }}
+    >
+      <span>Driver</span>
+      <span>{currentPage.title}</span>
+    </Breadcrumbs>
+
+  </Box>
+
+  
+
+</Toolbar>
 
 </Toolbar>
         </AppBar>

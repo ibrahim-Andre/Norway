@@ -236,37 +236,40 @@ const handleSalarySettings = (driver) => {
   return (
   <Box
     sx={{
-      width: "100%",
-      overflow: "hidden"   // ⭐ burada değişti
+      width: "100%",overflowX: "auto"
     }}
   >
     <Box
       sx={{
-        width: "100%",
-        minWidth: 1200,   // ⭐ tablo genişliği
-        height: 600       // ⭐ autoHeight kaldırıldı
+        minWidth: 1400,
+height: 600,
+display: "block"
       }}
     >
       <DataGrid
-        rows={rows}
-        columns={columns}
-        getRowId={(row) => row.id}
-        loading={loading}
+  rows={rows}
+  columns={columns}
+  getRowId={(row) => row.id}
+  loading={loading}
 
-        pageSize={10}
-        rowsPerPageOptions={[10, 25, 50]}
+  pageSize={10}
+  rowsPerPageOptions={[10, 25, 50]}
 
-        disableRowSelectionOnClick
-		
-		disableVirtualization   // ⭐ önemli
-		scrollbarSize={10}      // ⭐ scroll görünür
+  disableRowSelectionOnClick
 
-        sx={{
-          width: "100%",
-		  minWidth: 1200,
-		  overflowX: "auto"     // ⭐ kr		  
-        }}
-      />
+  sx={{
+    width: "100%",
+    minWidth: 2000,
+
+    "& .MuiDataGrid-main": {
+      overflowX: "auto"   // ⭐ gerçek scroll burada açılır
+    },
+
+    "& .MuiDataGrid-virtualScroller": {
+      overflowX: "auto"   // ⭐ kritik
+    }
+  }}
+/>
     </Box>
 
     {/* POPUP */}

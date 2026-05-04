@@ -11,6 +11,9 @@ import {
 
 export default function DriverPanel() {
   const [driver, setDriver] = useState(null);
+  useEffect(() => {
+  document.title = "Dashboard";
+}, []);
 
   useEffect(() => {
     const loadDriver = async () => {

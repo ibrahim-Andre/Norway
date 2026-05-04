@@ -25,6 +25,22 @@ import { useEffect, useState } from "react";
 const drawerWidth = 260;
 
 export default function AdminLayout() {
+	const getTitle = (pathname) => {
+  switch (pathname) {
+    case "/admin":
+      return "Dashboard";
+    case "/admin/drivers":
+      return "Şoförler";
+    case "/admin/vehicles":
+      return "Araçlar";
+    case "/admin/earnings":
+      return "Kazançlar";
+    case "/admin/invoices":
+      return "Faturalar";
+    default:
+      return "Admin Panel";
+  }
+};
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -32,6 +48,8 @@ export default function AdminLayout() {
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
   const [admin, setAdmin] = useState(null);
+  
+  
 
   useEffect(() => {
     const loadAdmin = async () => {
@@ -79,6 +97,11 @@ export default function AdminLayout() {
       icon: <PaymentsIcon />,
       path: "/admin/earnings",
     },
+	{
+	  text: "Faturalar",
+	  icon: <PaymentsIcon />,
+	  path: "/admin/invoices",
+},
   ];
 
   return (
@@ -198,8 +221,8 @@ export default function AdminLayout() {
   )}
 
   <Typography variant="h6" fontWeight="bold">
-    Admin Dashboard
-  </Typography>
+  {getTitle(location.pathname)}
+</Typography>
 
 </Toolbar>
         </AppBar>

@@ -1,0 +1,6 @@
+***********************  Fatura   **************************''
+
+
+Fatura indir
+Paid / Unpaid sistemi
+PDF / resim görüntüleme butonu

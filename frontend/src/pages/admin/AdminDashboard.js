@@ -3,7 +3,7 @@ import styled from 'styled-components';
 import { supabase } from "../../lib/supabase";
 import MaintenanceOverview from './Dashboard/MaintenanceOverview';
 import StatCard from "../../components/admin/StatCard";
-
+import UpcomingPaymentsWidget from "./components/UpcomingPaymentsWidget";
 
 
 function AdminDashboard() {
