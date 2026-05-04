@@ -21,11 +21,13 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import IconButton from "@mui/material/IconButton";
 import Tooltip from "@mui/material/Tooltip";
 import DownloadIcon from "@mui/icons-material/Download";
+import EditIcon from "@mui/icons-material/Edit";
 
 export default function InvoicesPage() {
 
   const [open, setOpen] = useState(false);
   const [invoices, setInvoices] = useState([]);
+  const [editData, setEditData] = useState(null);
   
 
   // DATA ÇEK
@@ -50,6 +52,32 @@ export default function InvoicesPage() {
     }
 
   };
+  
+  const getStatusColor = (invoice) => {
+
+  const today = new Date();
+  const paymentDate = new Date(invoice.payment_date);
+
+  // paid
+  if (invoice.status === "paid") {
+    return "success";
+  }
+
+  // overdue
+  if (paymentDate < today) {
+    return "error";
+  }
+
+  // upcoming (3 gün)
+  const diff =
+    (paymentDate - today) / (1000 * 60 * 60 * 24);
+
+  if (diff <= 3) {
+    return "warning";
+  }
+
+  return "default";
+};
   
 
 
@@ -148,7 +176,17 @@ export default function InvoicesPage() {
 
           {invoices.map((invoice) => (
 
-            <TableRow key={invoice.id}>
+            <TableRow
+  key={invoice.id}
+  sx={{
+    backgroundColor:
+      getStatusColor(invoice) === "error"
+        ? "#ffe5e5"
+        : getStatusColor(invoice) === "warning"
+        ? "#fff7e0"
+        : "inherit",
+  }}
+>
 
   <TableCell>
     {invoice.pay_to}
@@ -170,7 +208,15 @@ export default function InvoicesPage() {
 
     ) : (
 
-      <Chip label="Pending" color="warning" />
+      <Chip
+  label={
+  invoice.status === "paid"
+    ? "Ödendi"
+    : new Date(invoice.payment_date) < new Date()
+    ? "Gecikti"
+    : "Bekliyor"
+}
+/>
 
     )}
 
@@ -268,6 +314,19 @@ export default function InvoicesPage() {
       </Tooltip>
 
     )}
+	
+	{/* UPDATE */}
+	<Tooltip title="Düzenle">
+  <IconButton
+    color="primary"
+    onClick={() => {
+      setEditData(invoice);
+      setOpen(true);
+    }}
+  >
+    <EditIcon />
+  </IconButton>
+</Tooltip>
 
     {/* DELETE */}
 
@@ -305,24 +364,19 @@ export default function InvoicesPage() {
         fullWidth
       >
         <DialogTitle>
+  {editData ? "Faturayı Düzenle" : "Yeni Fatura"}
+</DialogTitle>
 
-          Yeni Fatura
-
-        </DialogTitle>
-
-        <DialogContent>
-
-          <InvoiceForm
-            onClose={() => {
-
-              setOpen(false);
-
-              fetchInvoices();
-
-            }}
-          />
-
-        </DialogContent>
+<DialogContent>
+  <InvoiceForm
+    onClose={() => {
+      setOpen(false);
+      setEditData(null);
+      fetchInvoices();
+    }}
+    editData={editData}
+  />
+</DialogContent>
 
       </Dialog>
 

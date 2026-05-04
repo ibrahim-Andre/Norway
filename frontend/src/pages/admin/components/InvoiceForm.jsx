@@ -7,10 +7,10 @@ import {
   FormControlLabel,
 } from "@mui/material";
 
-import { useState } from "react";
+import { useState, useEffect  } from "react";
 import { supabase } from "../../../lib/supabase";
 
-export default function InvoiceForm({ onClose }) {
+export default function InvoiceForm({ onClose, editData  }) {
 
   const [file, setFile] = useState(null);
 
@@ -25,6 +25,19 @@ export default function InvoiceForm({ onClose }) {
     document_url: "",
   });
   
+  
+  
+  
+  useEffect(() => {
+  if (editData) {
+    setForm({
+      pay_to: editData.pay_to || "",
+      amount: editData.amount || "",
+      payment_date: editData.payment_date || "",
+      description: editData.description || "",
+    });
+  }
+}, [editData]);
  
 
   const handleChange = (e) => {
@@ -63,11 +76,15 @@ const uploadFile = async () => {
   const fileName = Date.now() + "_" + cleanName;
 
   const { error } = await supabase
-    .storage
-    .from("documents")
-    .upload(fileName, file);
+  .storage
+  .from("documents")
+  .upload(fileName, file);
 
-  if (error) return null;
+if (error) {
+  console.log("UPLOAD ERROR:", error); // 🔥 bunu ekle
+  alert(error.message);
+  return null;
+}
 
   const { data } = supabase
     .storage
@@ -79,55 +96,40 @@ const uploadFile = async () => {
 
   const handleSubmit = async () => {
 
-  try {
+  let fileUrl = editData?.document_url || null;
 
-    let fileUrl = null;
-
-    // 1) FILE UPLOAD
-
-    if (file) {
-
-      fileUrl = await uploadFile();
-
-      console.log("UPLOAD URL:", fileUrl);
-
-      if (!fileUrl) {
-        alert("Dosya yüklenemedi");
-        return;
-      }
-
-    }
-
-    // 2) INSERT DATA
-
-    const insertData = {
-      ...form,
-      amount: Number(form.amount),
-      document_url: fileUrl,
-    };
-
-    console.log("INSERT DATA:", insertData);
-
-    const { error } = await supabase
-      .from("invoices")
-      .insert([insertData]);
-
-    if (error) {
-      console.log("INSERT ERROR:", error);
-      alert(error.message);
-      return;
-    }
-
-    alert("Kayıt başarılı");
-
-    onClose();
-
-  } catch (err) {
-
-    console.log("GENEL HATA:", err);
-
+  // yeni dosya varsa upload
+  if (file) {
+    fileUrl = await uploadFile();
   }
 
+  const dataToSave = {
+    ...form,
+    amount: Number(form.amount),
+    document_url: fileUrl,
+  };
+
+  let response;
+
+  if (editData) {
+    // UPDATE
+    response = await supabase
+      .from("invoices")
+      .update(dataToSave)
+      .eq("id", editData.id);
+  } else {
+    // INSERT
+    response = await supabase
+      .from("invoices")
+      .insert([dataToSave]);
+  }
+
+  if (response.error) {
+    alert(response.error.message);
+    return;
+  }
+
+  onClose();
 };
 
   return (

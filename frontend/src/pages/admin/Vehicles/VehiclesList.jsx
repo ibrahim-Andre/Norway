@@ -4,7 +4,7 @@ import { MaintenanceBadge } from '../../../ui/badge';
 import {List,Card,Left,Right,Plate,Meta,Btn} from '../../../styles/VehiclesList.styles';
 
 
-export default function VehiclesList({ vehicles, onEdit, onDelete, onMaintenance, onAssignDriver }) {
+export default function VehiclesList({ vehicles, onEdit, onDelete, onMaintenance, onAssignDriver, onExpenses }) {
 	
 
   return (
@@ -30,7 +30,7 @@ export default function VehiclesList({ vehicles, onEdit, onDelete, onMaintenance
                     : `${days} gün sonra bakım`}
                 </MaintenanceBadge>
               )}
-
+				<Btn onClick={() => onExpenses(v)}> 💸 Ödemeler </Btn>
 				<Btn onClick={() => onMaintenance(v)}> 🔧 Bakımlar </Btn>
 				<Btn onClick={() => onAssignDriver(v)}> 👤 Driver Ata </Btn>
 

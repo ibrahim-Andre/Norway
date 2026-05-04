@@ -37,6 +37,8 @@ export default function AdminLayout() {
       return "Kazançlar";
     case "/admin/invoices":
       return "Faturalar";
+	case "/admin/stats":
+	  return "İstatistik";
     default:
       return "Admin Panel";
   }
@@ -101,6 +103,11 @@ export default function AdminLayout() {
 	  text: "Faturalar",
 	  icon: <PaymentsIcon />,
 	  path: "/admin/invoices",
+},
+{
+  text: "İstatistik",
+  icon: <DashboardIcon />,
+  path: "/admin/stats",
 },
   ];
 

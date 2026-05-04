@@ -8,7 +8,7 @@ import VehicleMaintenanceDrawer from './Vehicles/VehicleMaintenanceDrawer';
 import { getVehiclesWithMaintenance } from '../../features/vehicles/vehicles.api';
 import MaintenanceHistoryModal from './Vehicles/MaintenanceHistoryModal';
 import AssignDriverModal from "../../components/AssignDriverModal";
-
+import VehicleExpensesModal from './Vehicles/VehicleExpensesModal';
 
 
 export default function Vehicles() {
@@ -20,7 +20,7 @@ export default function Vehicles() {
   const [historyOpen, setHistoryOpen] = useState(false);
   const [editingMaintenance, setEditingMaintenance] = useState(null);
   const [assignModalOpen, setAssignModalOpen] = useState(false);
-
+  const [expensesOpen, setExpensesOpen] = useState(false);
 
 
 
@@ -54,6 +54,7 @@ export default function Vehicles() {
   }}
   onMaintenance={(v) => { setSelectedVehicle(v); setHistoryOpen(true); }}
   onAssignDriver={(vehicle) => { setSelectedVehicle(vehicle); setAssignModalOpen(true); }}
+  onExpenses={(v) => { setSelectedVehicle(v); setExpensesOpen(true); }}
 />
 
 
@@ -105,6 +106,13 @@ export default function Vehicles() {
       setAssignModalOpen(false);
       // burada istersen refreshVehicles() çağır
     }}
+  />
+)}
+{expensesOpen && selectedVehicle && (
+  <VehicleExpensesModal
+    vehicle={selectedVehicle}
+    onClose={() => setExpensesOpen(false)}
+    onSaved={load}
   />
 )}
 

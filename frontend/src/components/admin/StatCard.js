@@ -36,7 +36,7 @@ const Value = styled.div`
   font-weight: 700;
 `;
 
-function StatCard({ title, value, icon, color }) {
+function StatCard({ title, value, icon, color, subtitle }) {
   return (
     <Card>
       <Icon color={color}>{icon}</Icon>
@@ -44,6 +44,11 @@ function StatCard({ title, value, icon, color }) {
       <div>
         <Title>{title}</Title>
         <Value>{value}</Value>
+		{subtitle && (
+  <div style={{ fontSize: 12, opacity: 0.7 }}>
+    {subtitle}
+  </div>
+)}
       </div>
     </Card>
   );

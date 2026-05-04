@@ -12,6 +12,7 @@ import VehiclesPage from "./pages/admin/VehiclesPage";
 import EarningsPage from "./pages/admin/Earnings/EarningsPage";
 import DriverEarningsPage from "./pages/driver/DriverEarningsPage";
 import InvoicesPage from "./pages/admin/InvoicesPage";
+import StatsPage from "./pages/admin/StatsPage";
 
 function App() {
   return (
@@ -37,7 +38,7 @@ function App() {
           <Route path="vehicles" element={<VehiclesPage />} />
 		  <Route path="earnings" element={<EarningsPage />} />
 		  <Route path="invoices" element={<InvoicesPage />} />
-/>
+		  <Route path="stats" element={<StatsPage />} />
         </Route>
 
         {/* DRIVER – AYRI PANEL */}
