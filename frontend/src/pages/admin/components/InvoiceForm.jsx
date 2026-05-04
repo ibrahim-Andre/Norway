@@ -24,6 +24,14 @@ export default function InvoiceForm({ onClose }) {
     description: "",
     document_url: "",
   });
+  
+  const sanitizeFileName = (name) => {
+  return name
+    .normalize("NFD") // å → a
+    .replace(/[\u0300-\u036f]/g, "") // accent kaldır
+    .replace(/\s+/g, "_") // boşluk → _
+    .replace(/[^a-zA-Z0-9._-]/g, ""); // özel karakter temizle
+};
 
   const handleChange = (e) => {
 
@@ -48,8 +56,10 @@ export default function InvoiceForm({ onClose }) {
 
   if (!file) return null;
 
+  const cleanName = sanitizeFileName(file.name);
+
   const fileName =
-    Date.now() + "_" + file.name;
+    Date.now() + "_" + cleanName;
 
   const { error } = await supabase
     .storage
@@ -66,7 +76,7 @@ export default function InvoiceForm({ onClose }) {
     .from("documents")
     .getPublicUrl(fileName);
 
-  return data.publicUrl; // 🔥 KRİTİK
+  return data.publicUrl;
 };
 
   const handleSubmit = async () => {
@@ -89,7 +99,8 @@ export default function InvoiceForm({ onClose }) {
       .insert([
         {
           ...form,
-          document_url: fileUrl,
+        amount: Number(form.amount),
+        document_url: fileUrl, // 🔥 KRİTİK
         },
       ]);
 
