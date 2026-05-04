@@ -25,13 +25,7 @@ export default function InvoiceForm({ onClose }) {
     document_url: "",
   });
   
-  const sanitizeFileName = (name) => {
-  return name
-    .normalize("NFD") // å → a
-    .replace(/[\u0300-\u036f]/g, "") // accent kaldır
-    .replace(/\s+/g, "_") // boşluk → _
-    .replace(/[^a-zA-Z0-9._-]/g, ""); // özel karakter temizle
-};
+ 
 
   const handleChange = (e) => {
 
@@ -52,28 +46,28 @@ export default function InvoiceForm({ onClose }) {
 
   };
 
-  const uploadFile = async () => {
-
-  if (!file) return null;
-
-  const cleanName = file.name
+  const sanitizeFileName = (name) => {
+  return name
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .replace(/\s+/g, "_")
     .replace(/[^a-zA-Z0-9._-]/g, "");
+};
 
-  const fileName =
-    Date.now() + "_" + cleanName;
+const uploadFile = async () => {
+
+  if (!file) return null;
+
+  const cleanName = sanitizeFileName(file.name);
+
+  const fileName = Date.now() + "_" + cleanName;
 
   const { error } = await supabase
     .storage
     .from("documents")
     .upload(fileName, file);
 
-  if (error) {
-    console.log("UPLOAD ERROR:", error);
-    return null;
-  }
+  if (error) return null;
 
   const { data } = supabase
     .storage
