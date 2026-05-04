@@ -155,7 +155,7 @@ export default function InvoicesPage() {
   </TableCell>
 
   <TableCell>
-    {invoice.amount} €
+    {invoice.amount} Sek
   </TableCell>
 
   <TableCell>
