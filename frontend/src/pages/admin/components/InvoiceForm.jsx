@@ -46,32 +46,28 @@ export default function InvoiceForm({ onClose }) {
 
   const uploadFile = async () => {
 
-    if (!file) return null;
+  if (!file) return null;
 
-    const fileName =
-      Date.now() + "_" + file.name;
+  const fileName =
+    Date.now() + "_" + file.name;
 
-    const { error } = await supabase
-      .storage
-      .from("documents")
-      .upload(fileName, file);
+  const { error } = await supabase
+    .storage
+    .from("documents")
+    .upload(fileName, file);
 
-    if (error) {
+  if (error) {
+    alert(error.message);
+    return null;
+  }
 
-      alert(error.message);
+  const { data } = supabase
+    .storage
+    .from("documents")
+    .getPublicUrl(fileName);
 
-      return null;
-
-    }
-
-    const { data } = supabase
-      .storage
-      .from("documents")
-      .getPublicUrl(fileName);
-
-    return data.publicUrl;
-
-  };
+  return data.publicUrl; // 🔥 KRİTİK
+};
 
   const handleSubmit = async () => {
 

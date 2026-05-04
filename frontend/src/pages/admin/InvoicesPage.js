@@ -18,15 +18,15 @@ import { useState, useEffect } from "react";
 import { supabase } from "../../lib/supabase";
 import InvoiceForm from "./components/InvoiceForm";
 import DeleteIcon from "@mui/icons-material/Delete";
-import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
 import IconButton from "@mui/material/IconButton";
 import Tooltip from "@mui/material/Tooltip";
-
+import DownloadIcon from "@mui/icons-material/Download";
 
 export default function InvoicesPage() {
 
   const [open, setOpen] = useState(false);
   const [invoices, setInvoices] = useState([]);
+  
 
   // DATA ÇEK
 
@@ -51,13 +51,7 @@ export default function InvoicesPage() {
 
   };
   
-  const openDocument = (url) => {
 
-  if (!url) return;
-
-  window.open(url, "_blank");
-
-};
 
   // ÖDEME YAPILDI
 
@@ -172,49 +166,52 @@ export default function InvoicesPage() {
 
     {invoice.status === "paid" ? (
 
-      <Chip
-        label="Paid"
-        color="success"
-      />
+      <Chip label="Paid" color="success" />
 
     ) : (
 
-      <Chip
-        label="Pending"
-        color="warning"
-      />
+      <Chip label="Pending" color="warning" />
 
     )}
 
   </TableCell>
 
-  {/* PDF ICON */}
+  {/* PDF PREVIEW */}
 
   <TableCell>
 
     {invoice.document_url ? (
 
-      <Tooltip title="PDF Aç">
+      <Box
+        sx={{
+          width: 60,
+          height: 80,
+          border: "1px solid #ccc",
+          borderRadius: 1,
+          overflow: "hidden",
+          cursor: "pointer",
+        }}
+        onClick={() =>
+          window.open(invoice.document_url)
+        }
+      >
 
-        <IconButton
-          color="primary"
-          onClick={() =>
-            openDocument(
-              invoice.document_url
-            )
-          }
-        >
+        <iframe
+          src={invoice.document_url}
+          width="100%"
+          height="100%"
+          style={{
+            border: "none",
+            pointerEvents: "none",
+          }}
+          title="pdf-preview"
+        />
 
-          <PictureAsPdfIcon />
-
-        </IconButton>
-
-      </Tooltip>
+      </Box>
 
     ) : (
 
       "-"
-
     )}
 
   </TableCell>
@@ -222,6 +219,8 @@ export default function InvoicesPage() {
   {/* ACTIONS */}
 
   <TableCell>
+
+    {/* ÖDEME */}
 
     {invoice.status !== "paid" && (
 
@@ -237,6 +236,40 @@ export default function InvoicesPage() {
       </Button>
 
     )}
+
+    {/* DOWNLOAD */}
+
+    {invoice.document_url && (
+
+      <Tooltip title="İndir">
+
+        <IconButton
+          color="primary"
+          onClick={() => {
+
+            const link =
+              document.createElement("a");
+
+            link.href =
+              invoice.document_url;
+
+            link.download =
+              "invoice.pdf";
+
+            link.click();
+
+          }}
+        >
+
+          <DownloadIcon />
+
+        </IconButton>
+
+      </Tooltip>
+
+    )}
+
+    {/* DELETE */}
 
     <Tooltip title="Sil">
 
