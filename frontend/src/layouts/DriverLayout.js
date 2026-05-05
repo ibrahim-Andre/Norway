@@ -24,6 +24,7 @@ import MenuIcon from "@mui/icons-material/Menu";
 import { IconButton, useTheme, useMediaQuery } from "@mui/material";
 import NavigateNextIcon from "@mui/icons-material/NavigateNext";
 import { Breadcrumbs } from "@mui/material";
+import RoleSwitch from "../components/RoleSwitch";
 const drawerWidth = 260;
 
 export default function DriverLayout() {
@@ -34,6 +35,12 @@ export default function DriverLayout() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const roles = JSON.parse(localStorage.getItem("roles")) || ["driver"];
+  const hasAdmin = roles.includes("admin");
+  const hasDriver = roles.includes("driver");
+  
+  const activeRole = localStorage.getItem("activeRole");
+  
   
   const pageConfig = {
   "/driver": {
@@ -55,21 +62,26 @@ const currentPage = pageConfig[location.pathname] || {
   icon: <DashboardIcon />,
 };
 useEffect(() => {
-  const loadDriver = async () => {
+  const loadUser = async () => {
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) return;
 
-    const { data } = await supabase
-      .from("drivers")
+    const { data, error } = await supabase
+      .from("profiles")
       .select("full_name")
-      .eq("auth_user_id", user.id)
+      .eq("id", user.id)
       .single();
+	  
+	  if (error) {
+      console.log("PROFILE ERROR:", error);
+      return;
+    }
 
     setDriver(data);
   };
 
-  loadDriver();
+  loadUser();
 }, []);
   
 
@@ -135,8 +147,8 @@ useEffect(() => {
           {menuItems.map((item) => (
             <ListItemButton
               key={item.text}
-              onClick={() => navigate(item.path)}
-              selected={location.pathname.startsWith(item.path)}
+  onClick={() => navigate(item.path)}
+  selected={location.pathname === item.path}
               sx={{
   transition: "all 0.2s",
   "&:hover": {
@@ -175,6 +187,14 @@ useEffect(() => {
     <ListItemText primary="Şifre Değiştir" />
   </ListItemButton>
 </Box>
+
+{/* ADMIN SWITCH */}
+
+{hasAdmin && hasDriver && activeRole === "driver" && (
+  <Box sx={{ px: 2 }}>
+    <RoleSwitch roles={roles} />
+  </Box>
+)}
 
         {/* Logout */}
         <Box sx={{ px: 2 }}>

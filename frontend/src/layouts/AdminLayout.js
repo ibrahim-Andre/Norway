@@ -21,6 +21,8 @@ import { IconButton, useTheme, useMediaQuery } from "@mui/material";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import { useEffect, useState } from "react";
+import RoleSwitch from "../components/RoleSwitch";
+
 
 const drawerWidth = 260;
 
@@ -48,6 +50,10 @@ export default function AdminLayout() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const roles = JSON.parse(localStorage.getItem("roles")) || ["admin"];
+  const hasAdmin = roles.includes("admin");
+const hasDriver = roles.includes("driver");
+const activeRole = localStorage.getItem("activeRole") || "admin";
 
   const [admin, setAdmin] = useState(null);
   
@@ -61,11 +67,16 @@ export default function AdminLayout() {
 
       if (!user) return;
 
-      const { data } = await supabase
-        .from("admins")
-        .select("full_name, role")
-        .eq("auth_user_id", user.id)
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("full_name, username")
+        .eq("id", user.id)
         .single();
+		
+	   if (error) {
+      console.log("PROFILE ERROR:", error);
+      return;
+    }
 
       setAdmin(data);
     };
@@ -140,7 +151,7 @@ export default function AdminLayout() {
           }}
         >
           <Typography fontWeight="bold" fontSize={18}>
-            👤 {admin?.full_name || "Admin"}
+            👤 {admin?.full_name || admin?.username || "Admin"}
           </Typography>
 
           <Typography fontSize={13} sx={{ opacity: 0.7 }}>
@@ -181,7 +192,16 @@ export default function AdminLayout() {
 
         <Divider sx={{ my: 2, background: "#374151" }} />
 
-        {/* LOGOUT */}
+		
+		{/* DRIVER SWITCH */}
+
+{hasAdmin && hasDriver && activeRole === "admin" && (
+  <Box sx={{ px: 2 }}>
+    <RoleSwitch roles={roles} />
+  </Box>
+)}
+		
+		{/* LOGOUT */}
 
         <Box sx={{ px: 2 }}>
           <ListItemButton
@@ -202,6 +222,7 @@ export default function AdminLayout() {
             <ListItemText primary="Logout" />
           </ListItemButton>
         </Box>
+		
       </Drawer>
 
       {/* MAIN */}

@@ -50,46 +50,46 @@ function Login() {
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
-    e.preventDefault();
-    setError("");
+  e.preventDefault();
+  setError("");
 
-    try {
-      // 1️⃣ Username → profile bul
-      const { data: profile, error: profileError } = await supabase
-        .from("profiles")
-        .select("id, email, role")
-        .eq("username", username)
-        .single();
+  // 1️⃣ profile al
+  const { data: profile, error: profileError } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("username", username)
+    .single();
 
-      if (profileError || !profile) {
-        setError("Kullanıcı bulunamadı");
-        return;
-      }
+  if (profileError || !profile) {
+    setError("Kullanıcı bulunamadı");
+    return;
+  }
 
-      // 2️⃣ Email + password login
-      const { error: loginError } =
-        await supabase.auth.signInWithPassword({
-          email: profile.email, // 🔥 BURASI ÖNEMLİ
-          password,
-        });
+  // 2️⃣ login
+  const { error: loginError } =
+    await supabase.auth.signInWithPassword({
+      email: profile.email,
+      password,
+    });
 
-      if (loginError) {
-        setError("Şifre hatalı");
-        return;
-      }
+  if (loginError) {
+    setError("Şifre yanlış");
+    return;
+  }
 
-      // 3️⃣ Role yönlendirme
-      if (profile.role === "admin") {
-        navigate("/admin");
-      } else {
-        navigate("/driver");
-      }
+  // 🔥 🔥 🔥 KRİTİK SATIR
+  localStorage.setItem("roles", JSON.stringify(profile.roles));
+  
 
-    } catch (err) {
-      setError("Bir hata oluştu");
-      console.error(err);
-    }
-  };
+  // 🔥 role seçimi
+  if (profile.roles.includes("admin")) {
+    localStorage.setItem("activeRole", "admin");
+    navigate("/admin/dashboard");
+  } else {
+    localStorage.setItem("activeRole", "driver");
+    navigate("/driver");
+  }
+};
 
 
 
