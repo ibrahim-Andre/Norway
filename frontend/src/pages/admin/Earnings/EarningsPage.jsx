@@ -1,34 +1,42 @@
-
-import { supabase } from "../../../lib/supabase"
+import { supabase } from "../../../lib/supabase";
 import "./EarningsPage.css";
 import { useEffect, useState, useCallback } from "react";
 
 export default function DriversEarningsPage() {
+
   const [drivers, setDrivers] = useState([]);
   const [earnings, setEarnings] = useState([]);
   const [loading, setLoading] = useState(false);
-  
-  
+
+  const [period, setPeriod] =
+    useState("daily");
+
   const fetchData = useCallback(async () => {
 
     setLoading(true);
 
     try {
 
-      const { data: driversData, error: driversError } =
-        await supabase
-          .from("drivers")
-          .select("*")
-          .order("full_name");
+      const {
+        data: driversData,
+        error: driversError,
+      } = await supabase
+        .from("drivers")
+        .select("*")
+        .order("full_name");
 
-      if (driversError) throw driversError;
+      if (driversError)
+        throw driversError;
 
-      const { data: earningsData, error: earningsError } =
-        await supabase
-          .from("driver_daily_income")
-          .select("*");
+      const {
+        data: earningsData,
+        error: earningsError,
+      } = await supabase
+        .from("driver_daily_summary")
+        .select("*");
 
-      if (earningsError) throw earningsError;
+      if (earningsError)
+        throw earningsError;
 
       setDrivers(driversData || []);
       setEarnings(earningsData || []);
@@ -48,179 +56,356 @@ export default function DriversEarningsPage() {
 
   useEffect(() => {
 
-  fetchData();
+    fetchData();
 
-  const channel = supabase
-    .channel("income-changes")
+    const channel = supabase
+      .channel("income-changes")
 
-    .on(
-      "postgres_changes",
-      {
-        event: "*",
-        schema: "public",
-        table: "driver_daily_income",
-      },
-      () => {
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "driver_daily_summary",
+        },
+        () => {
+          fetchData();
+        }
+      )
 
-        fetchData();
+      .subscribe();
 
-      }
-    )
+    return () => {
+      supabase.removeChannel(channel);
+    };
 
-    .subscribe();
-
-  return () => {
-    supabase.removeChannel(channel);
-  };
-
-}, [fetchData]);
-
+  }, [fetchData]);
 
   const calculateTotals = (driverId) => {
-  const now = new Date();
 
-  let daily = 0;
-  let weekly = 0;
-  let monthly = 0;
-  let yearly = 0;
+    let uber = 0;
+    let uberTips = 0;
+    let uberCash = 0;
 
-  earnings.forEach((e) => {
+    let bolt = 0;
+    let boltTips = 0;
 
-    if (e.driver_id !== driverId) return;
+    let sumup = 0;
+    let sumupTips = 0;
 
-    const date = new Date(e.date);
+    const now = new Date();
 
-    const diffDays = Math.floor(
-      (now - date) / (1000 * 60 * 60 * 24)
-    );
+    earnings.forEach((e) => {
 
-    const income = Number(e.net_income || 0);
+      if (
+        String(e.driver_id) !==
+        String(driverId)
+      ) return;
 
-    if (diffDays === 0) daily += income;
+      const date = new Date(e.date);
 
-    if (diffDays <= 7) weekly += income;
+      const diffDays = Math.floor(
+        (now - date) /
+        (1000 * 60 * 60 * 24)
+      );
 
-    if (diffDays <= 30) monthly += income;
+      let include = false;
 
-    if (diffDays <= 365) yearly += income;
+      if (period === "daily")
+        include = diffDays === 0;
 
-  });
+      if (period === "weekly")
+        include = diffDays <= 7;
 
-  return {
-    daily,
-    weekly,
-    monthly,
-    yearly
+      if (period === "monthly")
+        include = diffDays <= 30;
+
+      if (period === "yearly")
+        include = diffDays <= 365;
+
+      if (!include) return;
+
+      uber += parseFloat(e.uber || 0);
+
+      uberTips += parseFloat(
+        e.uber_tips || 0
+      );
+
+      uberCash += parseFloat(
+        e.uber_cash || 0
+      );
+
+      bolt += parseFloat(e.bolt || 0);
+
+      boltTips += parseFloat(
+        e.bolt_tips || 0
+      );
+
+      sumup += parseFloat(
+        e.sumup || 0
+      );
+
+      sumupTips += parseFloat(
+        e.sumup_tips || 0
+      );
+    });
+
+    return {
+
+      uber,
+      uberTips,
+      uberCash,
+
+      bolt,
+      boltTips,
+
+      sumup,
+      sumupTips,
+
+      total:
+        uber +
+        uberTips +
+        uberCash +
+        bolt +
+        boltTips +
+        sumup +
+        sumupTips,
+    };
   };
-};
 
   const handleDelete = async (driverId) => {
-    if (!window.confirm("Şoför silinsin mi?")) return;
+
+    if (!window.confirm("Şoför silinsin mi?"))
+      return;
 
     try {
+
       await supabase
         .from("drivers")
         .delete()
         .eq("id", driverId);
 
       fetchData();
+
     } catch (error) {
-      console.error("Silme hatası:", error.message);
+
+      console.error(
+        "Silme hatası:",
+        error.message
+      );
     }
   };
 
   const handleEdit = (driver) => {
-    alert(`Düzenle: ${driver.full_name}`);
+
+    alert(
+      `Düzenle: ${driver.full_name}`
+    );
   };
 
   return (
+
     <div className="table-container">
 
-  <table className="modern-table">
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "12px",
+          marginBottom: "20px",
+        }}
+      >
 
-    <thead>
-      <tr>
-        <th>Şoför</th>
-        <th>Günlük</th>
-        <th>Haftalık</th>
-        <th>Aylık</th>
-        <th>Yıllık</th>
-        <th>İşlemler</th>
-      </tr>
-    </thead>
+        <label
+          style={{
+            fontSize: "14px",
+            fontWeight: "600",
+            color: "#111827",
+          }}
+        >
+          Periyot
+        </label>
 
-    <tbody>
+        <select
+          value={period}
+          onChange={(e) =>
+            setPeriod(e.target.value)
+          }
 
-      {loading && (
-        <tr>
-          <td colSpan="6">
-            Yükleniyor...
-          </td>
-        </tr>
-      )}
+          style={{
 
-      {!loading && drivers.length === 0 && (
-        <tr>
-          <td colSpan="6">
-            Kayıt bulunamadı
-          </td>
-        </tr>
-      )}
+            padding: "10px 16px",
 
-      {drivers.map((driver) => {
+            borderRadius: "12px",
 
-        const totals = calculateTotals(driver.id);
+            border:
+              "1px solid #d1d5db",
 
-        return (
-          <tr key={driver.id}>
+            background: "#fff",
 
-            <td className="driver-name">
-              {driver.full_name}
-            </td>
+            fontSize: "14px",
+            fontWeight: "500",
 
-            <td className="money">
-              {totals.daily} ₺
-            </td>
+            cursor: "pointer",
 
-            <td className="money">
-              {totals.weekly} ₺
-            </td>
+            outline: "none",
 
-            <td className="money">
-              {totals.monthly} ₺
-            </td>
+            minWidth: "160px",
 
-            <td className="money">
-              {totals.yearly} ₺
-            </td>
+            boxShadow:
+              "0 2px 8px rgba(0,0,0,0.05)",
+          }}
+        >
 
-            <td>
+          <option value="daily">
+            Günlük
+          </option>
 
-              <button
-                className="edit-btn"
-                onClick={() => handleEdit(driver)}
-              >
-                Düzenle
-              </button>
+          <option value="weekly">
+            Haftalık
+          </option>
 
-              <button
-                className="delete-btn"
-                onClick={() => handleDelete(driver.id)}
-              >
-                Sil
-              </button>
+          <option value="monthly">
+            Aylık
+          </option>
 
-            </td>
+          <option value="yearly">
+            Yıllık
+          </option>
+
+        </select>
+
+      </div>
+
+      <table className="modern-table">
+
+        <thead>
+
+          <tr>
+
+            <th>Şoför</th>
+
+            <th>Uber</th>
+
+            <th>Uber Tips</th>
+
+            <th>Uber Cash</th>
+
+            <th>Bolt</th>
+
+            <th>Bolt Tips</th>
+
+            <th>SumUp</th>
+
+            <th>SumUp Tips</th>
+
+            <th>Toplam</th>
+
+            <th>İşlemler</th>
 
           </tr>
-        );
 
-      })}
+        </thead>
 
-    </tbody>
+        <tbody>
 
-  </table>
+          {loading && (
+            <tr>
+              <td colSpan="10">
+                Yükleniyor...
+              </td>
+            </tr>
+          )}
 
-</div>
+          {!loading &&
+            drivers.length === 0 && (
+            <tr>
+              <td colSpan="10">
+                Kayıt bulunamadı
+              </td>
+            </tr>
+          )}
+
+          {drivers.map((driver) => {
+
+            const totals =
+              calculateTotals(driver.id);
+
+            return (
+
+              <tr key={driver.id}>
+
+                <td className="driver-name">
+                  {driver.full_name}
+                </td>
+
+                <td className="money">
+                  {totals.uber} sek
+                </td>
+
+                <td className="money">
+                  {totals.uberTips} sek
+                </td>
+
+                <td className="money">
+                  {totals.uberCash} sek
+                </td>
+
+                <td className="money">
+                  {totals.bolt} sek
+                </td>
+
+                <td className="money">
+                  {totals.boltTips} sek
+                </td>
+
+                <td className="money">
+                  {totals.sumup} sek
+                </td>
+
+                <td className="money">
+                  {totals.sumupTips} sek
+                </td>
+
+                <td
+                  className="money"
+                  style={{
+                    fontWeight: "bold",
+                  }}
+                >
+                  {totals.total} sek
+                </td>
+
+                <td>
+
+                  <button
+                    className="edit-btn"
+                    onClick={() =>
+                      handleEdit(driver)
+                    }
+                  >
+                    Düzenle
+                  </button>
+
+                  <button
+                    className="delete-btn"
+                    onClick={() =>
+                      handleDelete(driver.id)
+                    }
+                  >
+                    Sil
+                  </button>
+
+                </td>
+
+              </tr>
+            );
+          })}
+
+        </tbody>
+
+      </table>
+
+    </div>
   );
 }

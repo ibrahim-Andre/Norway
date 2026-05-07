@@ -9,6 +9,7 @@ export default function DriversEarningsPage() {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [loading, setLoading] = useState(false);
+
   const tableStyle = {
   width: "100%",
   minWidth: 800,
@@ -87,7 +88,12 @@ const mobileCellStyle = {
     let yearly = 0;
 
     earnings.forEach((e) => {
-      if (e.driver_id !== driverId) return;
+      if (
+  String(e.driver_id) !==
+  String(driverId)
+)
+  return;
+	  
 
       const date = new Date(e.date);
 
@@ -96,9 +102,7 @@ const mobileCellStyle = {
       );
 
       const amount =
-        safeNumber(e.uber) +
-        safeNumber(e.bolt) +
-        safeNumber(e.sumup);
+  safeNumber(e.total_income);
 
       if (diffDays === 0) daily += amount;
       if (diffDays <= 7) weekly += amount;
@@ -123,9 +127,7 @@ const mobileCellStyle = {
       if (e.driver_id !== driverId) return;
 
       income +=
-        safeNumber(e.uber) +
-        safeNumber(e.bolt) +
-        safeNumber(e.sumup);
+        safeNumber(e.total_income);
 
       tips +=
         safeNumber(e.uber_tips) +
@@ -250,6 +252,7 @@ const mobileCellStyle = {
           {drivers.map((driver) => {
             const totals =
               calculateTotals(driver.id);
+			  console.log(driver.full_name, totals);
 
             const salary =
               calculateSalary(driver.id);

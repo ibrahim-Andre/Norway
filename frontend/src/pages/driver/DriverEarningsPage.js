@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabase";
-
+//driverEarningsPage
 import {
   Box,
   Card,
@@ -19,6 +19,8 @@ import {
 
 export default function DriverEarningsPage() {
   const today = new Date();
+  
+  
 
   const [month, setMonth] = useState(today.getMonth() + 1);
   const [year, setYear] = useState(today.getFullYear());
@@ -63,12 +65,12 @@ export default function DriverEarningsPage() {
       )}`;
 
       const { data } = await supabase
-        .from("driver_daily_income")
+        .from("driver_daily_summary")
         .select("*")
         .eq("driver_id", driver.id)
         .gte("date", startDate)
         .lte("date", endDate);
-
+		
       const days = getDaysInMonth(month, year);
 
       let incomeSum = 0;
@@ -84,38 +86,39 @@ export default function DriverEarningsPage() {
           .padStart(2, "0")}`;
 
         const record = data?.find(
-          (d) => d.date === date
-        );
+  (d) => d.date === date
+);
 
-        const uber = safeNumber(record?.uber);
-        const bolt = safeNumber(record?.bolt);
-        const sumup = safeNumber(record?.sumup);
+const uber = safeNumber(record?.uber);
+const bolt = safeNumber(record?.bolt);
+const sumup = safeNumber(record?.sumup);
 
-        const uberTips = safeNumber(record?.uber_tips);
-        const boltTips = safeNumber(record?.bolt_tips);
-        const sumupTips = safeNumber(record?.sumup_tips);
+const uberTips = safeNumber(record?.uber_tips);
+const boltTips = safeNumber(record?.bolt_tips);
+const sumupTips = safeNumber(record?.sumup_tips);
 
-        const total =
-          uber +
-          bolt +
-          sumup +
-          uberTips +
-          boltTips +
-          sumupTips;
+const total =
+  safeNumber(record?.total_income);
+  incomeSum += total;
 
-        incomeSum += uber + bolt + sumup;
-        tipsSum += uberTips + boltTips + sumupTips;
+tipsSum +=
+  uberTips +
+  boltTips +
+  sumupTips;
 
-        fullRows.push({
-          date,
-          uber,
-          bolt,
-          sumup,
-          uberTips,
-          boltTips,
-          sumupTips,
-          total,
-        });
+fullRows.push({
+  date,
+
+  uber,
+  bolt,
+  sumup,
+
+  uberTips,
+  boltTips,
+  sumupTips,
+
+  total,
+});
       }
 
       setRows(fullRows);
