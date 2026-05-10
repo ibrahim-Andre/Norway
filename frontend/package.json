@@ -7,6 +7,9 @@
     "npm": "10.x"
   },
   "dependencies": {
+    "@capacitor/cli": "^8.3.3",
+    "@capacitor/core": "^8.3.3",
+    "@capacitor/ios": "^8.3.3",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
     "@fullcalendar/daygrid": "^6.1.20",
