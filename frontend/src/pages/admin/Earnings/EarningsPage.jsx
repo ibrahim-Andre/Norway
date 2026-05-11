@@ -83,95 +83,66 @@ export default function DriversEarningsPage() {
 
   const calculateTotals = (driverId) => {
 
-    let uber = 0;
-    let uberTips = 0;
-    let uberCash = 0;
+  let uber = 0;
+  let uberTips = 0;
+  let uberCash = 0;
 
-    let bolt = 0;
-    let boltTips = 0;
+  let bolt = 0;
+  let boltTips = 0;
 
-    let sumup = 0;
-    let sumupTips = 0;
+  let sumup = 0;
+  let sumupTips = 0;
 
-    const now = new Date();
+  const now = new Date();
 
-    earnings.forEach((e) => {
+  earnings.forEach((e) => {
 
-      if (
-        String(e.driver_id) !==
-        String(driverId)
-      ) return;
+    if (String(e.driver_id) !== String(driverId)) return;
 
-      const date = new Date(e.date);
+    const date = new Date(e.date);
 
-      const diffDays = Math.floor(
-        (now - date) /
-        (1000 * 60 * 60 * 24)
-      );
+    let include = true;
 
-      let include = false;
+    if (period === "daily") {
+      include = date.toDateString() === now.toDateString();
+    }
 
-      if (period === "daily")
-        include = diffDays === 0;
+    if (period === "weekly") {
+      const diff = (now - date) / (1000 * 60 * 60 * 24);
+      include = diff <= 7;
+    }
 
-      if (period === "weekly")
-        include = diffDays <= 7;
+    if (period === "monthly") {
+      include =
+        date.getMonth() === now.getMonth() &&
+        date.getFullYear() === now.getFullYear();
+    }
 
-      if (period === "monthly")
-        include = diffDays <= 30;
+    if (period === "yearly") {
+      include = date.getFullYear() === now.getFullYear();
+    }
 
-      if (period === "yearly")
-        include = diffDays <= 365;
+    if (!include) return;
 
-      if (!include) return;
+    // 🔥 senin DB kolonlarına göre düzelt
+    uber += Number(e.uber_income || 0);
+    bolt += Number(e.bolt_income || 0);
+    sumup += Number(e.sumup_income || 0);
 
-      uber += parseFloat(e.uber || 0);
+    // eğer yoksa 0 kalır
+  });
 
-      uberTips += parseFloat(
-        e.uber_tips || 0
-      );
-
-      uberCash += parseFloat(
-        e.uber_cash || 0
-      );
-
-      bolt += parseFloat(e.bolt || 0);
-
-      boltTips += parseFloat(
-        e.bolt_tips || 0
-      );
-
-      sumup += parseFloat(
-        e.sumup || 0
-      );
-
-      sumupTips += parseFloat(
-        e.sumup_tips || 0
-      );
-    });
-
-    return {
-
-      uber,
-      uberTips,
-      uberCash,
-
-      bolt,
-      boltTips,
-
-      sumup,
-      sumupTips,
-
-      total:
-        uber +
-        uberTips +
-        uberCash +
-        bolt +
-        boltTips +
-        sumup +
-        sumupTips,
-    };
+  return {
+    uber,
+    uberTips,
+    uberCash,
+    bolt,
+    boltTips,
+    sumup,
+    sumupTips,
+    total: uber + bolt + sumup,
   };
+};
 
   const handleDelete = async (driverId) => {
 

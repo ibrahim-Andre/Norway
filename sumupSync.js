@@ -7,6 +7,7 @@ const { createClient } = require("@supabase/supabase-js");
 
 // ENV
 const SUPABASE_URL = process.env.REACT_APP_SUPABASE_URL;
+
 const SUPABASE_KEY =
   process.env.SUPABASE_SERVICE_ROLE ||
   process.env.REACT_APP_SUPABASE_ANON_KEY;
@@ -27,7 +28,7 @@ async function syncSumupTransactions() {
     let allTransactions = [];
     let nextCursor = null;
 
-    // 🔥 TÜM VERİLERİ ÇEK
+    // 🔥 TÜM TRANSACTIONS
     do {
       const response = await axios.get(
         "https://api.sumup.com/v0.1/me/transactions/history",
@@ -72,33 +73,27 @@ async function syncSumupTransactions() {
       const timestamp = tx.timestamp || null;
 
       const txDate = timestamp
-        ? new Date(timestamp)
-            .toISOString()
-            .split("T")[0]
+        ? new Date(timestamp).toISOString().split("T")[0]
         : null;
 
       const transactionId =
         tx.transaction_id || tx.id;
 
-      // 🔥 1. CHECKOUT REFERENCE (EN DOĞRU YOL)
+      // 🔥 DRIVER BUL (EN DOĞRU: checkout_reference)
       let driverId = null;
 
       if (tx.checkout_reference) {
         try {
-          // format: driver_xxx
           if (tx.checkout_reference.startsWith("driver_")) {
             driverId = tx.checkout_reference.replace("driver_", "");
           } else {
-            // JSON format destek
             const parsed = JSON.parse(tx.checkout_reference);
             driverId = parsed.driverId || null;
           }
-        } catch (e) {
-          console.log("⚠️ checkout parse hatası");
-        }
+        } catch (e) {}
       }
 
-      // 🔥 2. MERCHANT FALLBACK
+      // 🔁 FALLBACK (merchant)
       if (!driverId) {
         const merchantCode =
           tx.merchant_code ||
@@ -116,18 +111,12 @@ async function syncSumupTransactions() {
             )
             .maybeSingle();
 
-          if (driver) {
-            driverId = driver.id;
-          }
+          if (driver) driverId = driver.id;
         }
       }
 
-      // 🔴 DRIVER BULUNAMADI LOG
       if (!driverId) {
-        console.log(
-          "❌ DRIVER YOK:",
-          transactionId
-        );
+        console.log("❌ DRIVER YOK:", transactionId);
       }
 
       // ❌ DUPLICATE ENGELLE
@@ -139,7 +128,7 @@ async function syncSumupTransactions() {
 
       if (existing) continue;
 
-      // ✅ INSERT TRANSACTION
+      // ✅ TRANSACTION INSERT
       const { error } = await supabase
         .from("sumup_transactions")
         .insert({
@@ -162,8 +151,20 @@ async function syncSumupTransactions() {
 
       console.log("💾 kayıt:", transactionId);
 
-      // 📊 SUMMARY UPDATE (DOUBLE COUNT FIX)
+      // 🔥 EN KRİTİK KISIM (DOUBLE COUNT FIX)
       if (driverId && txDate) {
+
+        // O günün TÜM işlemlerini DB'den çek
+        const { data: dayTransactions } = await supabase
+          .from("sumup_transactions")
+          .select("amount")
+          .eq("driver_id", driverId)
+          .eq("date", txDate);
+
+        const dayTotal = (dayTransactions || []).reduce(
+          (sum, t) => sum + Number(t.amount || 0),
+          0
+        );
 
         const { data: existingSummary } = await supabase
           .from("driver_daily_summary")
@@ -177,11 +178,8 @@ async function syncSumupTransactions() {
           await supabase
             .from("driver_daily_summary")
             .update({
-              sumup:
-                Number(existingSummary.sumup || 0) + amount,
-
-              total_income:
-                Number(existingSummary.total_income || 0) + amount,
+              sumup: dayTotal,
+              total_income: dayTotal,
             })
             .eq("id", existingSummary.id);
 
@@ -197,9 +195,9 @@ async function syncSumupTransactions() {
               uber_cash: 0,
               bolt: 0,
               bolt_tips: 0,
-              sumup: amount,
+              sumup: dayTotal,
               sumup_tips: 0,
-              total_income: amount,
+              total_income: dayTotal,
             });
         }
       }
