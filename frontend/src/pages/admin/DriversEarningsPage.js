@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
-
+//admin Driver Earnings
 export default function DriversEarningsPage() {
   const [drivers, setDrivers] = useState([]);
   const [earnings, setEarnings] = useState([]);

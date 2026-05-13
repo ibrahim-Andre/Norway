@@ -89,16 +89,22 @@ export default function DriverEarningsPage() {
   (d) => d.date === date
 );
 
-const uber = safeNumber(record?.uber);
-const bolt = safeNumber(record?.bolt);
-const sumup = safeNumber(record?.sumup);
+const uber = safeNumber(record?.uber_income || record?.uber);
+const bolt = safeNumber(record?.bolt_income || record?.bolt);
+const sumup = safeNumber(record?.sumup_income || record?.sumup);
 
 const uberTips = safeNumber(record?.uber_tips);
 const boltTips = safeNumber(record?.bolt_tips);
 const sumupTips = safeNumber(record?.sumup_tips);
 
 const total =
-  safeNumber(record?.total_income);
+  uber +
+  uberTips +
+  bolt +
+  boltTips +
+  sumup +
+  sumupTips;
+  
   incomeSum += total;
 
 tipsSum +=
@@ -136,10 +142,13 @@ fullRows.push({
       const taxPercent =
         safeNumber(settings?.tax_percentage) / 100;
 
-      const salaryValue =
-        (incomeSum - tipsSum) *
-        adminPercent *
-        taxPercent;
+      const netIncomeWithoutTips =
+  incomeSum - tipsSum;
+
+const salaryValue =
+  netIncomeWithoutTips *
+  adminPercent *
+  taxPercent;
 
       setSalary(Math.round(salaryValue));
 
@@ -200,7 +209,7 @@ fullRows.push({
               setYear(e.target.value)
             }
           >
-            {[2024, 2025, 2026, 2027].map((y) => (
+            {[2026, 2027, 2028, 2029, 2030].map((y) => (
               <MenuItem key={y} value={y}>
                 {y}
               </MenuItem>
@@ -319,27 +328,27 @@ fullRows.push({
                   </TableCell>
 
                   <TableCell>
-                    {r.uber} SEK
+                    {r.uber}
                   </TableCell>
 
                   <TableCell>
-                    {r.uberTips} SEK
+                    {r.uberTips}
                   </TableCell>
 
                   <TableCell>
-                    {r.bolt} SEK
+                    {r.bolt}
                   </TableCell>
 
                   <TableCell>
-                    {r.boltTips} SEK
+                    {r.boltTips}
                   </TableCell>
 
                   <TableCell>
-                    {r.sumup} SEK
+                    {r.sumup}
                   </TableCell>
 
                   <TableCell>
-                    {r.sumupTips} SEK
+                    {r.sumupTips}
                   </TableCell>
 
                   <TableCell
