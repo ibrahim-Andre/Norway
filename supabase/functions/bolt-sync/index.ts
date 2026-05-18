@@ -3,6 +3,8 @@ import { serve } from "https://deno.land/std/http/server.ts";
 import { createClient }
 from "https://esm.sh/@supabase/supabase-js@2";
 
+
+
 serve(async () => {
 
   try {
@@ -13,291 +15,364 @@ serve(async () => {
         Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
       );
 
-    console.log("Bolt driver sync başladı");
+    console.log(
+      "Bolt driver sync başladı"
+    );
 
-    const today =
-      new Date()
-        .toISOString()
-        .split("T")[0];
 
-    // DRIVER LIST
+   
 
-    const driversResponse =
+    // DRIVERS
+
+    const drivers = [
+
+      {
+        id: 9049643,
+        name: "Ismail Koc",
+      },
+
+      {
+        id: 9041626,
+        name: "Muhammet Cankaya",
+      },
+
+    ];
+
+ 
+
+
+const syncDate =
+  new Date()
+    .toISOString()
+    .split("T")[0];
+
+
+
+
+  console.log(
+    "SYNC DATE:",
+    syncDate
+  );
+
+  console.log(
+    "Driver count:",
+    drivers.length
+  );
+
+
+
+      // LOOP DRIVERS
+
+      for (const d of drivers) {
+
+        const boltDriverId =
+          d.id;
+
+        // EARNINGS
+
+console.log(
+  "CURRENT TOKEN:",
+  Deno.env
+    .get("BOLT_AUTH_TOKEN")
+);
+
+const earningsResponse =
   await fetch(
-    "https://fleetownerportal.live.boltsvc.net/fleetOwnerPortal/getDriversByDateRange?language=en&version=FO.3.1996&company_id=308887&user_id=336691&brand=bolt",
-	
+    "https://fleetownerportal.live.boltsvc.net/fleetOwnerPortal/driverEarnings/getTable?language=en&version=FO.3.1996&company_id=308887&user_id=336691&brand=bolt",
+
     {
 
       method: "POST",
 
       headers: {
 
-        "authorization":
-          `Bearer ${Deno.env.get("BOLT_AUTH_TOKEN")}`,
+		"authorization":
+			`Bearer ${Deno.env.get("BOLT_AUTH_TOKEN")!}`,
+
+
+        "cookie":
+          Deno.env.get("BOLT_COOKIE")!,
 
         "content-type":
           "application/json",
-		  
-		  "cookie":
-    Deno.env.get("BOLT_COOKIE")!,
 
       },
 
-      body: JSON.stringify({
+      
+body: JSON.stringify({
 
-        start_date: today,
-        end_date: today,
+  start_date:
+    syncDate,
 
-        limit: 50,
-        offset: 0,
+  end_date:
+    syncDate,
 
-      }),
+  driver_ids: [
+    boltDriverId
+  ],
+
+  report_type:
+    "payments",
+
+  timezone:
+    "Europe/Stockholm",
+
+  sorting_field:
+    "driver_name",
+
+  sorting_direction:
+    "asc",
+
+  limit: 50,
+
+  offset: 0,
+
+}),
+
 
     }
   );
 
-const rawText =
-  await driversResponse.text();
-
-
-
-const driversJson =
-  JSON.parse(rawText);
-
-const drivers =
-  driversJson?.data?.list || [];
-
 console.log(
-  "Driver count:",
-  drivers.length
+  "EARNINGS STATUS:",
+  earningsResponse.status
 );
 
-    // LOOP DRIVERS
+const earningsJson =
+  await earningsResponse.json();
 
-    for (const d of drivers) {
+if (
+  earningsJson?.code === 503
+) {
 
-      const boltDriverId =
-        d.id;
+  throw new Error(
+    "TOKEN EXPIRED"
+  );
 
-      // DRIVER EARNINGS
+}
 
-      const earningsResponse =
-        await fetch(
-          "https://fleetownerportal.live.boltsvc.net/fleetOwnerPortal/driverEarnings/getTable?language=en&version=FO.3.1996&company_id=308887&user_id=336691&brand=bolt",
-		  
-          {
+console.log(
+  "EARNINGS RESPONSE:",
+  JSON.stringify(
+    earningsJson,
+    null,
+    2
+  )
+);
 
-            method: "POST",
 
-            headers: {
+        const columns =
+          earningsJson?.data?.columns || [];
 
-              "authorization":
-                `Bearer ${Deno.env.get("BOLT_AUTH_TOKEN")}`,
+        // PARSE
 
-              "content-type":
-                "application/json",
-				
-			  "cookie":
-				Deno.env.get("BOLT_COOKIE")!,
+        let gross = 0;
+        let tips = 0;
+        let net = 0;
 
-            },
+        for (const col of columns) {
 
-            body: JSON.stringify({
+          if (
+            col.key ===
+            "gross_earnings"
+          ) {
 
-              start_date: today,
-              end_date: today,
-
-              driver_ids: [
-                boltDriverId
-              ],
-
-              sorting_field:
-                "driver_name",
-
-              sorting_direction:
-                "asc",
-
-              limit: 50,
-              offset: 0,
-
-            }),
-
+            gross =
+              Number(
+                col.cells?.[0]
+              ) || 0;
           }
-        );
 
-      const earningsJson =
-        await earningsResponse.json();
+          if (
+            col.key ===
+            "rider_tips"
+          ) {
 
-      const columns =
-        earningsJson?.data?.columns || [];
+            tips =
+              Number(
+                col.cells?.[0]
+              ) || 0;
+          }
+
+          if (
+            col.key ===
+            "net_earnings"
+          ) {
+
+            net =
+              Number(
+                col.cells?.[0]
+              ) || 0;
+          }
+
+        }
+
+        console.log({
+          syncDate,
+          driver:
+            d.name,
+          net,
+        });
 		
+		if (net <= 0) {
 
-      // PARSE DATA
+  console.log(
+    "VERİ YOK"
+  );
 
-      let driverName = "";
-      let gross = 0;
-      let tips = 0;
-      let net = 0;
+  continue;
+}
 
-      for (const col of columns) {
+        // DB DRIVER
 
-        if (
-          col.key ===
-          "driver_name"
-        ) {
-          driverName =
-            col.cells?.[0]?.name || "";
-        }
+        const {
+          data: dbDriver
+        } =
+          await supabase
+            .from("drivers")
+            .select("*")
+            .eq(
+              "bolt_driver_id",
+              String(
+                boltDriverId
+              )
+            )
+            .single();
 
-        if (
-          col.key ===
-          "gross_earnings"
-        ) {
-          gross =
-            Number(
-              col.cells?.[0]
-            ) || 0;
-        }
+        if (!dbDriver) {
 
-        if (
-          col.key ===
-          "rider_tips"
-        ) {
-          tips =
-            Number(
-              col.cells?.[0]
-            ) || 0;
-        }
-
-        if (
-          col.key ===
-          "net_earnings"
-        ) {
-          net =
-            Number(
-              col.cells?.[0]
-            ) || 0;
-        }
-
-      }
-
-      
-
-      // MATCH DRIVER
-
-      const { data: dbDriver } =
-        await supabase
-          .from("drivers")
-          .select("*")
-          .eq(
-            "bolt_driver_id",
-            String(boltDriverId)
-          )
-          .single();
-
-      if (!dbDriver) {
-
-
-        continue;
-      }
-
-      // EXISTING DAY
-
-      const { data: existing } =
-        await supabase
-          .from("driver_daily_summary")
-          .select("*")
-          .eq(
-            "driver_id",
-            dbDriver.id
-          )
-          .eq(
-            "date",
-            today
-          )
-          .single();
-
-      if (existing) {
-		  
-		  
-
-        // UPDATE
-
-        await supabase
-          .from("driver_daily_summary")
-          .update({
-
-			bolt_income: net,
-			bolt_tips: tips,
-
-			// legacy columns
-			bolt: net,
-
-			total_income:
-				Number(existing.uber_income || 0) +
-				Number(existing.sumup_income || 0) +
-				net,
-
-})
-          .eq(
-            "id",
-            existing.id
+          console.log(
+            "DB DRIVER YOK"
           );
-			console.log("UPDATE ÇALIŞTI");
-      } else {
 
-        // INSERT
+          continue;
+        }
 
-        await supabase
-			.from("driver_daily_summary")
-			.insert({
+        // EXISTING
 
-			driver_id:
-				dbDriver.id,
+        const {
+          data: existing
+        } =
+          await supabase
+            .from(
+              "driver_daily_summary"
+            )
+            .select("*")
+            .eq(
+              "driver_id",
+              dbDriver.id
+            )
+            .eq(
+              "date",
+              syncDate
+            )
+            .single();
 
-			date: today,
+        if (existing) {
 
-			bolt_income:
-				net,
+          // UPDATE
 
-			bolt_tips:
-				tips,
+          await supabase
+            .from(
+              "driver_daily_summary"
+            )
+            .update({
 
-			// legacy
-			bolt:
-				net,
+              bolt_income:
+                net,
 
-			total_income:
-				net,
+              bolt_tips:
+                tips,
 
-			});
-			console.log("INSERT ÇALIŞTI");
-		}
+              bolt:
+                net,
 
-      
-    }
+              total_income:
+                Number(
+                  existing.uber_income || 0
+                ) +
+                Number(
+                  existing.sumup_income || 0
+                ) +
+                net,
+
+            })
+            .eq(
+              "id",
+              existing.id
+            );
+
+          console.log(
+            "UPDATE ÇALIŞTI"
+          );
+
+        } else {
+
+          // INSERT
+
+          await supabase
+            .from(
+              "driver_daily_summary"
+            )
+            .insert({
+
+              driver_id:
+                dbDriver.id,
+
+              date:
+                syncDate,
+
+              bolt_income:
+                net,
+
+              bolt_tips:
+                tips,
+
+              bolt:
+                net,
+
+              total_income:
+                net,
+
+            });
+
+          console.log(
+            "INSERT ÇALIŞTI"
+          );
+
+        }
+
+      }
 
     return new Response(
       JSON.stringify({
         success: true
       }),
       {
+
         headers: {
+
           "Content-Type":
             "application/json",
+
           "Access-Control-Allow-Origin":
             "*",
-			"cookie":
-    Deno.env.get("BOLT_COOKIE")!,
+
         }
+
       }
     );
 
+  
+
   } catch (err) {
+
+    console.log(err);
 
     return new Response(
       JSON.stringify({
-        error: err.message
+        error:
+          err.message
       }),
       {
         status: 500
